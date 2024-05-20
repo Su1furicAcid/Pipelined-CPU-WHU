@@ -46,8 +46,8 @@ module SCPU(
 	wire [11:0] iimm,simm,bimm;
 	wire [19:0] uimm,jimm;
 	wire [31:0] immout;
-wire[31:0] aluout;
-assign Addr_out=aluout;
+    wire[31:0] aluout;
+    assign Addr_out=aluout;
 	assign B = (ALUSrc) ? immout : RD2;
 	assign Data_out = RD2;
 	

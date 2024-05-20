@@ -11,7 +11,7 @@
 `define ALU_AND   3'b011
 `define ALU_OR    3'b100
 
-//EXT CTRL itype, stype, btype, utype, jtype
+// EXT CTRL itype, stype, btype, utype, jtype
 `define EXT_CTRL_ITYPE_SHAMT 6'b100000
 `define EXT_CTRL_ITYPE	6'b010000
 `define EXT_CTRL_STYPE	6'b001000
