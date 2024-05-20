@@ -107,7 +107,7 @@ module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, A
   // NPC_PLUS4   3'b000
   // NPC_BRANCH  3'b001
   // NPC_JUMP    3'b010
-  // NPC_JALR	3'b100
+  // NPC_JALR	   3'b100
   assign NPCOp[0] = sbtype & Zero;
   assign NPCOp[1] = i_jal;
 	assign NPCOp[2] = i_jalr;
@@ -126,10 +126,10 @@ module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, A
   // to alu, they are similar to rformat
 
   // 4. jalr
-  // in our datapath, alu need to do nothing
+  // in our datapath, alu need to do give special register, C equals to A, so it belongs nop
 
   // 5. jal
-  // in our datapath, alu need to do nothing
+  // in our datapath, alu need to do nothing, so it also belongs to nop
 
   // 6. sformat: sw, sh, sb
   // alu need to add the immediate to the base address, so they belong to add
@@ -141,7 +141,7 @@ module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, A
   // they are special
 
   // so, we can divide the instructions into some groups, these in one group appear at the same time
-  
+  wire ALUOp_nop = i_jalr | i_jal;
   wire ALUOp_lui = i_lui;
   wire ALUOp_auipc = i_auipc;
   wire ALUOp_add = i_add | itype_l | stype;
