@@ -1,3 +1,5 @@
+// Editor: SunAo 
+// LastEditTime: 2024/5/21
 module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, ALUSrc, WDSel, GPRSel, DMType);
             
   input  [6:0] Op;       // opcode
