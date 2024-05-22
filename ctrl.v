@@ -82,9 +82,9 @@ module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, A
 
   // generate control signals, write this according to ctrl_encode_def.v, which lists the truth table
   
-  assign RegWrite = rtype | itype_r | i_jalr | i_jal | i_lui | i_auipc; // write sth to register
+  assign RegWrite = rtype | itype_r | i_jalr | i_jal | i_lui | i_auipc | itype_l; // write sth to register
   assign MemWrite = stype; // write sth to memory
-  assign ALUSrc = itype_r | stype | i_jal | i_jalr | i_lui | i_auipc; // ALU B is from instruction immediate
+  assign ALUSrc = itype_r | stype | i_jal | i_jalr | i_lui | i_auipc | itype_l; // ALU B is from instruction immediate
 
   // signed extension
   // EXT_CTRL_ITYPE_SHAMT 6'b100000
