@@ -14,7 +14,7 @@ module xgriscv_tb();
   	integer counter = 0;
    
    initial begin
-      $readmemh( "riscv32_sim1.dat" , U_XGRISCV.U_imem.ROM); // load instructions into instruction memory
+      $readmemh( "riscv32_sim1.dat" , U_XGRISCV.U_imem.RAM); // load instructions into instruction memory
       clk = 1;
       rstn = 1;
       #5 ;
