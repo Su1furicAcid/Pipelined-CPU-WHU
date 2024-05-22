@@ -1,7 +1,7 @@
-module xgriscv_sc(clk, rst, pcNow);
+module xgriscv_sc(clk, rst, pcW);
 
     input         clk, rst;
-    output [31:0] pcNow;
+    output [31:0] pcW;
    
     wire [31:0] instruction;
     wire [31:0] PC;
@@ -9,8 +9,8 @@ module xgriscv_sc(clk, rst, pcNow);
     wire [31:0] dm_addr, dm_din, dm_dout;
 
     SCPU CPU_UNIT(
-        .clk(clk), .rst(rst), .Inst_in(instruction), .Data_in(dm_dout), .MemWrite(MemWrite),
-        .PC_out(PC), .Addr_out(dm_addr), .Data_out(dm_din), .pcNow(pcNow)
+        .clk(clk), .reset(rst), .inst_in(instruction), .Data_in(dm_dout), .mem_w(MemWrite),
+        .PC_out(PC), .Addr_out(dm_addr), .Data_out(dm_din), .pcW(pcW)
     );
 
     im U_imem(.RA(PC), .RD(instruction));

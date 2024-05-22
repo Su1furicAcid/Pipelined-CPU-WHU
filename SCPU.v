@@ -10,11 +10,7 @@ module SCPU(
     // memory write
     output [31:0] Addr_out,   // ALU output
     output [31:0] Data_out,// data to data memory
-    output [31:0] pcW,      // now PC
-
-    input  [4:0] reg_sel,    // register selection (for debug use)
-    output [31:0] reg_data  // selected register data (for debug use)
-    //output [2:0] DMType
+    output [31:0] pcW
 );
     wire RegWrite;    // control signal to register write
     wire [5:0] EXTOp;       // control signal to signed extension
