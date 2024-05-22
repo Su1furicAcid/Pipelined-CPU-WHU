@@ -16,7 +16,7 @@ module dm(clk, DMWr, addr, din, dout, pc);
      
    reg [31:0] dmem[127:0];
    
-   always @(posedge clk)
+   always @(negedge clk)
       if (DMWr) begin
          dmem[addr[8:2]] <= din;
          // for test
