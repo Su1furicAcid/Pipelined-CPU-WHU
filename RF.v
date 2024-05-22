@@ -25,7 +25,7 @@ module RF(
   integer i;
 
   // write data
-  always @(negedge clk or posedge rst)
+  always @(posedge clk)
     // reset 
     if (rst) begin
       for (i = 1; i < 32; i = i + 1)
