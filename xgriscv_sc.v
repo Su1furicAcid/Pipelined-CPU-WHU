@@ -1,4 +1,4 @@
-module xgriscv(clk, rstn, reg_sel, reg_data);
+module xgriscv_sc(clk, rstn, reg_sel, reg_data);
    input          clk;
    input          rstn;
    input [4:0]    reg_sel;
