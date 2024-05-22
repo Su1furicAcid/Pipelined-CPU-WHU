@@ -91,7 +91,7 @@ module SCPU(
 	alu U_alu(.A(RD1), .B(B), .ALUOp(ALUOp), .C(aluout), .Zero(Zero), .PC(PC_out));
 
 //please connnect the CPU by yourself
-always @*
+always @(*)
 begin
 	case(WDSel)
 		`WDSel_FromALU: WD<=aluout;

@@ -25,7 +25,7 @@ module alu(A, B, ALUOp, C, Zero, PC);
          `ALUOp_sub: C = A - B;
          `ALUOp_bne: C = { 31'b0, (A == B) };
          `ALUOp_blt: C = { 31'b0, (A >= B) };
-         `ALUOp_bge: C = { 31'b0 , (A < B) };
+         `ALUOp_bge: C = { 31'b0, (A < B) };
          `ALUOp_bltu: C = { 31'b0, ($unsigned(A) >= $unsigned(B)) };
          `ALUOp_bgeu: C = { 31'b0, ($unsigned(A) < $unsigned(B))};
          `ALUOp_slt: C={ 31'b0, (A < B)};
