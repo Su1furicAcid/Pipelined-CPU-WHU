@@ -8,7 +8,17 @@
 // WrDtAdr: write address
 // WrDt: write data
 // RdDt1, RdDt2: read data
-module RF(input clk, input rst, input RFWr, input [4:0] RdAdr1, RdAdr2, WrDtAdr, input [31:0] WrDt, output [31:0] RdDt1, RdDt2);
+module RF(
+  input clk, 
+  input rst, 
+  input RFWr, 
+  input [4:0] RdAdr1, 
+  input [4:0] RdAdr2, 
+  input [4:0] WrDtAdr, 
+  input [31:0] WrDt, 
+  output [31:0] RdDt1, 
+  output [31:0] RdDt2
+);
   // definite register file
   reg [31:0] rf[31:0];
 

@@ -82,7 +82,8 @@ module SCPU(
 	RF U_RF(
 		.clk(clk), .rst(reset),
 		.RFWr(RegWrite), 
-		.RdAdr1(rs1), .RdAdr2(rs2), .WrDtAdr(rd), 
+		.RdAdr1(rs1), .RdAdr2(rs2), 
+        .WrDtAdr(rd), 
 		.WrDt(WD), 
 		.RdDt1(RD1), .RdDt2(RD2)
 	);
