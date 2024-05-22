@@ -7,7 +7,7 @@ module xgriscv_tb();
    wire [31:0] reg_data;
     
 // instantiation of sccomp    
-   xgriscv U_XGRISCV(
+   xgriscv_sc U_XGRISCV(
       .clk(clk), .rstn(rstn), .reg_sel(reg_sel), .reg_data(reg_data) 
    );
 
