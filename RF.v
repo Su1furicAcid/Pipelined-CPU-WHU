@@ -18,14 +18,15 @@ module RF(input clk, input rst, input RFWr, input [4:0] RdAdr1, RdAdr2, WrDtAdr,
   always @(negedge clk or posedge rst)
     // reset 
     if (rst) begin
-      for (i=1; i<32; i=i+1)
+      for (i = 1; i < 32; i = i + 1)
         rf[i] <= 0;
     end 
     else if (RFWr) begin
+      if (WrDtAdr != 0) begin
         rf[WrDtAdr] <= WrDt;
         $display("x%d = %h", WrDtAdr, WrDt);
       end
-
+    end
   // read data
   assign RdDt1 = (RdAdr1 != 0) ? rf[RdAdr1] : 0;
   assign RdDt2 = (RdAdr2 != 0) ? rf[RdAdr2] : 0;

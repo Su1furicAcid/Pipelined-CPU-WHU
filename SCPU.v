@@ -44,8 +44,8 @@ module SCPU(
     wire [31:0] B;           // operator for ALU B
 	
 	wire [4:0] iimm_shamt;
-	wire [11:0] iimm,simm,bimm;
-	wire [19:0] uimm,jimm;
+	wire [11:0] iimm,simm,sbimm;
+	wire [19:0] uimm,ujimm;
 	wire [31:0] immout;
     wire [31:0] aluout;
     assign Addr_out = aluout;
