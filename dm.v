@@ -6,11 +6,12 @@
 // addr: address
 // din: write data
 // dout: read data
-module dm(clk, DMWr, addr, din, dout);
+module dm(clk, DMWr, addr, din, dout, pc);
    input clk;
    input DMWr;
    input [31:0] addr;
    input [31:0] din;
+   input [31:0] pc;
    output [31:0] dout;
      
    reg [31:0] dmem[127:0];
