@@ -147,7 +147,7 @@ module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, A
   wire ALUOp_lui = i_lui;
   wire ALUOp_auipc = i_auipc;
   wire ALUOp_add = i_add | itype_l | stype | i_addi;
-  wire ALUOp_sub = i_sub;
+  wire ALUOp_sub = i_sub | i_beq;
   wire ALUOp_bne = i_bne;
   wire ALUOp_blt = i_blt;
   wire ALUOp_bge = i_bge;
