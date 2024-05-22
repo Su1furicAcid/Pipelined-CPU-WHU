@@ -13,7 +13,7 @@ module xgriscv_sc(clk, rst, pcW);
         .PC_out(PC), .Addr_out(dm_addr), .Data_out(dm_din), .pcW(pcW)
     );
 
-    im U_imem(.RA(PC), .RD(instruction));
-    dm U_dmem(.clk(clk), .MemWrite(MemWrite), .Addr(dm_addr), .WD(dm_din), .RD(dm_dout), .PC(PC));
+    im U_imem(.addr(PC), .dout(instruction));
+    dm U_dmem(.clk(clk), .DMWr(MemWrite), .addr(dm_addr), .din(dm_din), .dout(dm_dout), .pc(PC));
 
 endmodule
