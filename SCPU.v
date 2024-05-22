@@ -10,6 +10,7 @@ module SCPU(
     // memory write
     output [31:0] Addr_out,   // ALU output
     output [31:0] Data_out,// data to data memory
+    output [31:0] pcW,      // now PC
 
     input  [4:0] reg_sel,    // register selection (for debug use)
     output [31:0] reg_data  // selected register data (for debug use)
@@ -76,7 +77,7 @@ module SCPU(
 	);
     // instantiation of pc unit
 	PC U_PC(.clk(clk), .rst(reset), .NPC(NPC), .PC(PC_out));
-	NPC U_NPC(.PC(PC_out), .NPCOp(NPCOp), .IMM(immout), .NPC(NPC), .aluout(aluout));
+	NPC U_NPC(.PC(PC_out), .NPCOp(NPCOp), .IMM(immout), .NPC(NPC), .aluout(aluout), .pcW(pcW));
 	EXT U_EXT(
 		.iimm_shamt(iimm_shamt), .iimm(iimm), .simm(simm), .sbimm(sbimm),
 		.uimm(uimm), .ujimm(ujimm),
