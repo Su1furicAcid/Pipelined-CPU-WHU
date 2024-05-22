@@ -94,7 +94,7 @@ module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, A
   // EXT_CTRL_UTYPE	      6'b000010
   // EXT_CTRL_JTYPE	      6'b000001
   assign EXTOp[5] = i_slli | i_srli | i_srai;
-  assign EXTOp[4] = (itype_r | itype_l) & ~(i_slli | i_srli | i_srai);
+  assign EXTOp[4] = (itype_r | itype_l | i_jalr) & ~(i_slli | i_srli | i_srai);
   assign EXTOp[3] = stype; 
   assign EXTOp[2] = sbtype; 
   assign EXTOp[1] = i_lui | i_auipc;
