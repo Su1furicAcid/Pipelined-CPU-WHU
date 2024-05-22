@@ -18,11 +18,11 @@ module dm(clk, DMWr, addr, din, dout, pc);
    
    always @(negedge clk)
       if (DMWr) begin
-         dmem[addr[8:2]] <= din;
+         dmem[addr[11:2]] <= din;
          // for test
          $display("pc = %h: dataaddr = %h, memdata = %h", pc, { addr [31:2], 2'b00 }, din);
       end
    
-   assign dout = dmem[addr[8:2]];
+   assign dout = dmem[addr[11:2]];
     
 endmodule    

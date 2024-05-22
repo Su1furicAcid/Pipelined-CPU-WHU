@@ -21,7 +21,7 @@ module NPC(PC, NPCOp, IMM, NPC, aluout, pcW);  // next pc module
          `NPC_PLUS4: NPC = PCPLUS4;
          `NPC_BRANCH: NPC = PC + IMM;
          `NPC_JUMP: NPC = PC + IMM;
-		   `NPC_JALR: NPC = (aluout + IMM) & ~1;
+		   `NPC_JALR: NPC = aluout + IMM;
          default: NPC = PCPLUS4;
       endcase
    end
