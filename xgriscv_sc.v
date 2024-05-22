@@ -1,8 +1,7 @@
-module xgriscv_sc(clk, rstn, reg_sel, reg_data);
+module xgriscv_sc(clk, rstn, pcW);
    input          clk;
    input          rstn;
-   input [4:0]    reg_sel;
-   output [31:0]  reg_data;
+   output [31:0]  pcW;
    
    wire [31:0]    instr;
    wire [31:0]    PC;
