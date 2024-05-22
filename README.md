@@ -8,11 +8,11 @@
 -	~~add/sub/and/or~~ 
 -	~~lw/sw~~
 -	~~beq~~
--	jalr/jal
--	ori/xor/xori/andi/addi
--	sll/sra/srl/slt/sltu/srai/slti/sltiu/slli/srli/lui/auipc
--	lb/lh/lbu/lhu/sb/sh (数据在内存中以小端形式存储little endian)
--	bne/blt/bge/bltu/bgeu/
+-	~~jalr/jal~~
+-	~~ori/xor/xori/andi/addi~~
+-	~~sll/sra/srl/slt/sltu/srai/slti/sltiu/slli/srli/lui/auipc~~
+-	~~lb/lh/lbu/lhu/sb/sh (数据在内存中以小端形式存储little endian)~~
+-	~~bne/blt/bge/bltu/bgeu/~~
 
 **注意：** 可以在示例代码基础上扩展完成，也可以自行设计代码结构。
 
