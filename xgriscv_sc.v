@@ -20,13 +20,11 @@ module xgriscv_sc(clk, rstn, pcW);
          .PC_out(PC),                   // output: PC
          .Addr_out(dm_addr),          // output: address from cpu to memory
          .Data_out(dm_din),        // output: data from cpu to memory
-         .reg_sel(reg_sel),         // input:  register selection
-         .reg_data(reg_data),
          .pcW(pcW)        // output: register data
          );
          
   // instantiation of data memory  
-   dm    U_DM(
+   dm U_dmem(
          .clk(clk),           // input:  cpu clock
          .DMWr(MemWrite),     // input:  ram write
          .addr(dm_addr[8:2]), // input:  ram address
@@ -35,7 +33,7 @@ module xgriscv_sc(clk, rstn, pcW);
          );
          
   // instantiation of intruction memory (used for simulation)
-   im    U_IM ( 
+   im U_imem ( 
       .addr(PC[8:2]),     // input:  rom address
       .dout(instr)        // output: instruction
    );
