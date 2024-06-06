@@ -162,7 +162,7 @@ module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, A
   wire ALUOp_srl = i_srl | i_srli;
   wire ALUOp_sra = i_sra | i_srai;
 
-	assign ALUOp[0] = ALUOp_lui | ALUOp_add | ALUOp_bne | ALUOp_bne | ALUOp_bge | ALUOp_bgeu | ALUOp_sltu | ALUOp_or | ALUOp_sll | ALUOp_srl | ALUOp_sra;
+	assign ALUOp[0] = ALUOp_lui | ALUOp_add | ALUOp_bne | ALUOp_bne | ALUOp_bge | ALUOp_bgeu | ALUOp_sltu | ALUOp_or | ALUOp_sll | ALUOp_sra;
 	assign ALUOp[1] = ALUOp_auipc | ALUOp_add | ALUOp_blt | ALUOp_bge | ALUOp_slt | ALUOp_sltu | ALUOp_and | ALUOp_sll;
 	assign ALUOp[2] = ALUOp_sub | ALUOp_bne | ALUOp_blt | ALUOp_bge | ALUOp_xor | ALUOp_or | ALUOp_and | ALUOp_sll;
 	assign ALUOp[3] = ALUOp_bltu | ALUOp_bgeu | ALUOp_slt | ALUOp_sltu | ALUOp_xor | ALUOp_or | ALUOp_and | ALUOp_sll;
