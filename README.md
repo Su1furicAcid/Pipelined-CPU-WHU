@@ -30,6 +30,8 @@ SCPU 不包含存储器的通路
 
 ##### git使用指南
 
+给不会用 git 的小萌新们的简单使用指南
+
 1. git clone 把代码下载到本地
 2. git add . 添加所有文件
 3. git commit -m "修改说明" 提交修改，修改说明的格式见 gitlint
