@@ -168,4 +168,8 @@ module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, A
 	assign ALUOp[3] = ALUOp_bltu | ALUOp_bgeu | ALUOp_slt | ALUOp_sltu | ALUOp_xor | ALUOp_or | ALUOp_and | ALUOp_sll;
 	assign ALUOp[4] = ALUOp_srl | ALUOp_sra;
 
+  assign DMType[0] = i_lh | i_lb | i_sh | i_sb;
+  assign DMType[1] = i_lhu | i_lb | i_sb;
+  assign DMType[2] = i_lbu ;
+
 endmodule
