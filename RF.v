@@ -25,17 +25,14 @@ module RF(
   integer i;
 
   // write data
-  always @(posedge clk or negedge rst)
+  always @(posedge clk or posedge rst)
     // reset 
     if (rst) begin
       for (i = 0; i < 32; i = i + 1)
         rf[i] <= 0;
     end 
-    else if (RFWr) begin
-      if (WrDtAdr != 0) begin
-        rf[WrDtAdr] <= WrDt;
-        $display("x%d = %h", WrDtAdr, WrDt);
-      end
+    else if (RFWr && WrDtAdr != 0) begin
+      rf[WrDtAdr] <= WrDt;
     end
   // read data
   assign RdDt1 = (RdAdr1 != 0) ? rf[RdAdr1] : 0;

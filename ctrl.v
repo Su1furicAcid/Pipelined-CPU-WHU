@@ -1,6 +1,6 @@
 // Editor: SunAo 
 // LastEditTime: 2024/5/21
-module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, ALUSrc, WDSel, GPRSel, DMType);
+module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, ALUSrc, WDSel, GPRSel, dm_ctrl);
             
   input  [6:0] Op;       // opcode
   input  [6:0] Funct7;    // funct7
@@ -13,7 +13,7 @@ module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, A
   output [4:0] ALUOp;    // ALU opertion
   output [2:0] NPCOp;    // next pc operation
   output       ALUSrc;   // ALU source for A
-	output [2:0] DMType;
+	output [2:0] dm_ctrl;
   output [1:0] GPRSel;   // general purpose register selection
   output [1:0] WDSel;    // (register) write data selection
 
@@ -30,7 +30,7 @@ module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, A
   wire i_sll = rtype & ~Funct7[6] & ~Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & ~Funct7[0] & ~Funct3[2] & ~Funct3[1] & Funct3[0]; // sll 0000000 001
   wire i_slt = rtype & ~Funct7[6] & ~Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & ~Funct7[0] & ~Funct3[2] & Funct3[1] & ~Funct3[0]; // slt 0000000 010
   wire i_sltu = rtype & ~Funct7[6] & ~Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & ~Funct7[0] & ~Funct3[2] & Funct3[1] & Funct3[0]; // sltu 0000000 011
-  wire i_srl = rtype & ~Funct7[6] & Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & ~Funct7[0] & Funct3[2] & ~Funct3[1] & Funct3[0]; // srl 0000000 101
+  wire i_srl = rtype & ~Funct7[6] & ~Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & ~Funct7[0] & Funct3[2] & ~Funct3[1] & Funct3[0]; // srl 0000000 101
   wire i_sra = rtype & ~Funct7[6] & Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & ~Funct7[0] & Funct3[2] & ~Funct3[1] & Funct3[0]; // sra 0100000 101
 
   // i format: lb, lh, lw, lbu, lhu
@@ -51,7 +51,7 @@ module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, A
   wire i_slti = itype_r & ~Funct3[2] & Funct3[1] & ~Funct3[0]; // slti 010
   wire i_sltiu = itype_r & ~Funct3[2] & Funct3[1] & Funct3[0]; // sltiu 011
   wire i_srli = itype_r & Funct3[2] & ~Funct3[1] & Funct3[0] & ~Funct7[6] & ~Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & ~Funct7[0]; // srli 101 0000000
-  wire i_srai = itype_r & Funct3[2] & Funct3[1] & Funct3[0] & ~Funct7[6] & Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & ~Funct7[0]; // srai 101 0100000
+  wire i_srai = itype_r & Funct3[2] & ~Funct3[1] & Funct3[0] & ~Funct7[6] & Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & ~Funct7[0]; // srai 101 0100000
 
   // jalr
 	wire i_jalr = Op[6] & Op[5] & ~Op[4] & ~Op[3] & Op[2] & Op[1] & Op[0]; //jalr opcode 1100111
@@ -94,7 +94,7 @@ module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, A
   // EXT_CTRL_UTYPE	      6'b000010
   // EXT_CTRL_JTYPE	      6'b000001
   assign EXTOp[5] = i_slli | i_srli | i_srai;
-  assign EXTOp[4] = (itype_r | itype_l | i_jalr) & ~(i_slli | i_srli | i_srai);
+  assign EXTOp[4] = i_addi | i_ori | i_andi | i_xori | i_slti | i_sltiu | i_jalr | i_lb | i_lh | i_lw | i_lbu | i_lhu;
   assign EXTOp[3] = stype; 
   assign EXTOp[2] = sbtype; 
   assign EXTOp[1] = i_lui | i_auipc;
@@ -115,61 +115,16 @@ module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, A
 	assign NPCOp[2] = i_jalr;
   
   // ALUOp
-
   // list the instructions and their corresponding ALU operations
 
-  // 1. rformat: add, sub, or, and, xor
-  // they are base for the rest of the instructions
+  assign ALUOp[0] = i_addi|i_ori|i_add|i_or|i_lui|i_bne|i_bge|i_bgeu|i_sltu|i_sltiu|i_sll|i_slli|i_sra|i_srai|itype_l|stype;
+  assign ALUOp[1] = i_auipc|i_add|i_addi|i_blt|i_bge|i_slt|i_slti|i_sltu|i_sltiu|i_and|i_andi|i_sll|i_slli|itype_l|stype;
+  assign ALUOp[2] = i_andi|i_and|i_ori|i_or|i_sub|i_bne|i_blt|i_bge|i_xor|i_xori|i_sll|i_slli|i_beq;
+  assign ALUOp[3] = i_andi|i_and|i_ori|i_or|i_bltu|i_bgeu|i_slti|i_slt|i_sltu|i_sltiu|i_xor|i_xori|i_sll|i_slli;
+  assign ALUOp[4] = i_srl|i_srli|i_sra|i_srai;
 
-  // 2. itype_l: lb, lh, lw, lbu, lhu
-  // alu need to add the immediate to the base address, so they belong to add
-
-  // 3. itype_r: addi, ori, xori, andi, slli, slti, sltiu, srli, srai
-  // to alu, they are similar to rformat
-
-  // 4. jalr
-  // in our datapath, alu need to do give special register, C equals to A, so it belongs nop
-
-  // 5. jal
-  // in our datapath, alu need to do nothing, so it also belongs to nop
-
-  // 6. sformat: sw, sh, sb
-  // alu need to add the immediate to the base address, so they belong to add
-
-  // 7. sbformat: beq, bne, blt, bltu, bge, bgeu
-  // they are special
-
-  // 8. Uformat: lui, auipc
-  // they are special
-
-  // so, we can divide the instructions into some groups, these in one group appear at the same time
-  wire ALUOp_nop = i_jalr | i_jal;
-  wire ALUOp_lui = i_lui;
-  wire ALUOp_auipc = i_auipc;
-  wire ALUOp_add = i_add | itype_l | stype | i_addi;
-  wire ALUOp_sub = i_sub | i_beq;
-  wire ALUOp_bne = i_bne;
-  wire ALUOp_blt = i_blt;
-  wire ALUOp_bge = i_bge;
-  wire ALUOp_bltu = i_bltu;
-  wire ALUOp_bgeu = i_bgeu;
-  wire ALUOp_slt = i_slt | i_slti;
-  wire ALUOp_sltu = i_sltu | i_sltiu;
-  wire ALUOp_xor = i_xor | i_xori;
-  wire ALUOp_or = i_or | i_ori;
-  wire ALUOp_and = i_and | i_andi;
-  wire ALUOp_sll = i_sll | i_slli;
-  wire ALUOp_srl = i_srl | i_srli;
-  wire ALUOp_sra = i_sra | i_srai;
-
-	assign ALUOp[0] = ALUOp_lui | ALUOp_add | ALUOp_bne | ALUOp_bne | ALUOp_bge | ALUOp_bgeu | ALUOp_sltu | ALUOp_or | ALUOp_sll | ALUOp_sra;
-	assign ALUOp[1] = ALUOp_auipc | ALUOp_add | ALUOp_blt | ALUOp_bge | ALUOp_slt | ALUOp_sltu | ALUOp_and | ALUOp_sll;
-	assign ALUOp[2] = ALUOp_sub | ALUOp_bne | ALUOp_blt | ALUOp_bge | ALUOp_xor | ALUOp_or | ALUOp_and | ALUOp_sll;
-	assign ALUOp[3] = ALUOp_bltu | ALUOp_bgeu | ALUOp_slt | ALUOp_sltu | ALUOp_xor | ALUOp_or | ALUOp_and | ALUOp_sll;
-	assign ALUOp[4] = ALUOp_srl | ALUOp_sra;
-
-  assign DMType[0] = i_lh | i_lb | i_sh | i_sb;
-  assign DMType[1] = i_lhu | i_lb | i_sb;
-  assign DMType[2] = i_lbu ;
+  assign dm_ctrl[0] = i_lh | i_lb | i_sh | i_sb;
+  assign dm_ctrl[1] = i_lhu | i_lb | i_sb;
+  assign dm_ctrl[2] = i_lbu;
 
 endmodule

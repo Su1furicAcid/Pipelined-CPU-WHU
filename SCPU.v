@@ -4,15 +4,12 @@ module SCPU(
     input reset,          // reset
     input [31:0] inst_in,     // instruction
     input [31:0] Data_in,     // data from data memory
-    input INT,
-    input MIO_ready,
    
     output mem_w,          // output: memory write signal
     output [31:0] PC_out,     // PC address
     // memory write
     output [31:0] Addr_out,   // ALU output
     output [31:0] Data_out,// data to data memory
-    output CPU_MIO,
     output [2:0] dm_ctrl
 );
     wire RegWrite;    // control signal to register write
@@ -72,7 +69,7 @@ module SCPU(
 		.Op(Op), .Funct7(Funct7), .Funct3(Funct3), .Zero(Zero), 
 		.RegWrite(RegWrite), .MemWrite(mem_w),
 		.EXTOp(EXTOp), .ALUOp(ALUOp), .NPCOp(NPCOp), 
-		.ALUSrc(ALUSrc), .GPRSel(GPRSel), .WDSel(WDSel), .DMType(dm_ctrl)
+		.ALUSrc(ALUSrc), .GPRSel(GPRSel), .WDSel(WDSel), .dm_ctrl(dm_ctrl)
 	);
     // instantiation of pc unit
 	PC U_PC(.clk(clk), .rst(reset), .NPC(NPC), .PC(PC_out));
