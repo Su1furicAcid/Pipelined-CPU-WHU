@@ -117,11 +117,11 @@ module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, A
   // ALUOp
   // list the instructions and their corresponding ALU operations
 
-  assign ALUOp[0] = i_addi|i_ori|i_add|i_or|i_lui|i_bne|i_bge|i_bgeu|i_sltu|i_sltiu|i_sll|i_slli|i_sra|i_srai|itype_l|stype;
-  assign ALUOp[1] = i_auipc|i_add|i_addi|i_blt|i_bge|i_slt|i_slti|i_sltu|i_sltiu|i_and|i_andi|i_sll|i_slli|itype_l|stype;
-  assign ALUOp[2] = i_andi|i_and|i_ori|i_or|i_sub|i_bne|i_blt|i_bge|i_xor|i_xori|i_sll|i_slli|i_beq;
-  assign ALUOp[3] = i_andi|i_and|i_ori|i_or|i_bltu|i_bgeu|i_slti|i_slt|i_sltu|i_sltiu|i_xor|i_xori|i_sll|i_slli;
-  assign ALUOp[4] = i_srl|i_srli|i_sra|i_srai;
+  assign ALUOp[0] = i_addi | i_ori | i_add | i_or | i_lui | i_bne | i_bge | i_bgeu | i_sltu | i_sltiu | i_sll | i_slli | i_sra | i_srai | itype_l | stype;
+  assign ALUOp[1] = i_auipc | i_add | i_addi | i_blt | i_bge | i_slt | i_slti | i_sltu | i_sltiu | i_and | i_andi | i_sll | i_slli | itype_l | stype;
+  assign ALUOp[2] = i_andi | i_and | i_ori | i_or | i_sub | i_bne | i_blt | i_bge | i_xor | i_xori | i_sll | i_slli | i_beq;
+  assign ALUOp[3] = i_andi | i_and | i_ori | i_or | i_bltu | i_bgeu | i_slti | i_slt | i_sltu | i_sltiu | i_xor | i_xori | i_sll | i_slli;
+  assign ALUOp[4] = i_srl | i_srli | i_sra | i_srai;
 
   assign dm_ctrl[0] = i_lh | i_lb | i_sh | i_sb;
   assign dm_ctrl[1] = i_lhu | i_lb | i_sb;
