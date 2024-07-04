@@ -9,6 +9,8 @@ module ForwardUnit(
   output reg [1:0] forwardB
 );
 always @(*) begin
+  forwardA <= 2'b00;
+  forwardB <= 2'b00;
   if (EX_MEM_WB && EX_MEM_Rd != 0) begin
     if (EX_MEM_Rd == ID_EX_Rs1) forwardA <= 2'b10;
     if (EX_MEM_Rd == ID_EX_Rs2) forwardB <= 2'b10;

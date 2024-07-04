@@ -12,7 +12,6 @@ module PCPU(
     output [31:0] Data_out,// data to data memory
     output [2:0] dm_ctrl
 );
-
     /*
     <<<<<<< IF Stage >>>>>>>
     */
@@ -73,7 +72,8 @@ module PCPU(
     wire [31:0] RD2;
     wire [4:0] rs1; assign rs1 = ID_inst[19:15];
     wire [4:0] rs2; assign rs2 = ID_inst[24:20];
-    wire [4:0] wrdtadr;
+    wire [4:0] rd; assign rd = ID_inst[11:7];
+    wire [4:0] wrdtadr; // from WB stage
     wire RegWrite;
     reg [31:0] wrdt;
     RF U_RF(
@@ -120,7 +120,9 @@ module PCPU(
     wire ID_EX_flush;
     StageReg #(.WIDTH(200)) U_ID_EX(clk, reset, ID_EX_write_enable, ID_EX_flush, , );
     assign U_ID_EX.in[31:0] = PC_out;
-    assign U_ID_EX.in[63:32] = inst_in;
+    assign U_ID_EX.in[36:32] = rs1;
+    assign U_ID_EX.in[41:37] = rs2;
+    assign U_ID_EX.in[46:42] = rd;
     assign U_ID_EX.in[95:64] = ctrl_signals;
     assign U_ID_EX.in[127:96] = RD1;
     assign U_ID_EX.in[159:128] = RD2;
@@ -137,24 +139,68 @@ module PCPU(
     wire [31:0] EX_immout; assign EX_immout = U_ID_EX.out[191:160];
     wire [31:0] EX_PC_out; assign EX_PC_out = U_ID_EX.out[31:0];
     wire [31:0] EX_inst; assign EX_inst = U_ID_EX.out[63:32];
+    wire [4:0] EX_rs1; assign EX_rs1 = U_ID_EX.out[36:32];
+    wire [4:0] EX_rs2; assign EX_rs2 = U_ID_EX.out[41:37];
+    wire [4:0] EX_rd; assign EX_rd = U_ID_EX.out[46:42];
+    wire [4:0] EX_MEM_rd;
+    wire [4:0] MEM_WB_rd;
+    wire EX_MEM_WB;
+    wire MEM_WB_WB;
 
     // ALU
     wire [31:0] ALUout;
-    wire [31:0] A; assign A = EX_RD1;
-    wire [31:0] B; assign B = (EX_signals[16]) ? EX_immout : EX_RD2;
+
+    wire forwardA, forwardB;
+
+    wire [31:0] A;
+    wire [31:0] B;
+    wire [31:0] MEM_ALUout; 
+    wire [31:0] WB_ALUout;
+
+    mux3 Amux(
+        .sel(forwardA),
+        .in0(EX_RD1),
+        .in1(WB_ALUout),
+        .in2(MEM_ALUout),
+        .out(A)
+    );
+
+    wire Bin0temp = (EX_signals[16]) ? EX_immout : EX_RD2;
+
+    mux3 Bmux(
+        .sel(forwardB),
+        .in0(Bin0temp),
+        .in1(WB_ALUout),
+        .in2(MEM_ALUout),
+        .out(B)
+    );
+
     alu U_alu(
-        .A(EX_RD1),
-        .B(EX_RD2),
+        .A(A),
+        .B(B),
         .ALUOp(EX_signals[12:8]),
         .C(ALUout),
         .PC(EX_PC_out)
+    );
+
+    // forward
+    
+    ForwardUnit U_ForwardUnit(
+        .ID_EX_Rs1(EX_rs1),
+        .ID_EX_Rs2(EX_rs2),
+        .EX_MEM_Rd(EX_MEM_rd),
+        .MEM_WB_Rd(MEM_WB_rd),
+        .EX_MEM_WB(EX_MEM_WB),
+        .MEM_WB_WB(MEM_WB_WB),
+        .forwardA(forwardA),
+        .forwardB(forwardB)
     );
 
     wire EX_MEM_write_enable;
     wire EX_MEM_flush;
     StageReg #(.WIDTH(200)) U_EX_MEM(clk, reset, EX_MEM_write_enable, EX_MEM_flush, , );
     assign U_EX_MEM.in[31:0] = EX_PC_out;
-    assign U_EX_MEM.in[63:32] = EX_inst;
+    assign U_EX_MEM.in[46:42] = EX_rd;
     assign U_EX_MEM.in[95:64] = EX_signals;
     assign U_EX_MEM.in[127:96] = EX_RD1;
     assign U_EX_MEM.in[159:128] = EX_RD2;
@@ -166,11 +212,11 @@ module PCPU(
 
     // get PC, registers, control signals and immediate from EX/MEM register
     wire [31:0] MEM_PC_out; assign MEM_PC_out = U_EX_MEM.out[31:0];
-    wire [31:0] MEM_inst; assign MEM_inst = U_EX_MEM.out[63:32];
+    wire [4:0] MEM_rd; assign MEM_rd = U_EX_MEM.out[46:42];
     wire [31:0] MEM_signals; assign MEM_signals = U_EX_MEM.out[95:64];
     wire [31:0] MEM_RD1; assign MEM_RD1 = U_EX_MEM.out[127:96];
     wire [31:0] MEM_RD2; assign MEM_RD2 = U_EX_MEM.out[159:128];
-    wire [31:0] MEM_ALUout; assign MEM_ALUout = U_EX_MEM.out[191:160];
+    assign MEM_ALUout = U_EX_MEM.out[191:160];
 
     // data memory
     assign Addr_out = MEM_ALUout;
@@ -179,10 +225,15 @@ module PCPU(
     wire [31:0] rd_data; assign rd_data = Data_in;
     assign mem_w = MEM_signals[1];
 
+    // forward
+    assign EX_MEM_WB = MEM_signals[0];
+    assign EX_MEM_rd = MEM_rd;
+
     wire MEM_WB_write_enable;
     wire MEM_WB_flush;
     StageReg #(.WIDTH(200)) U_MEM_WB(clk, reset, MEM_WB_write_enable, MEM_WB_flush, , );
     assign U_MEM_WB.in[31:0] = MEM_PC_out;
+    assign U_MEM_WB.in[46:42] = MEM_rd;
     assign U_MEM_WB.in[63:32] = MEM_ALUout;
     assign U_MEM_WB.in[95:64] = MEM_signals;
     assign U_MEM_WB.in[127:96] = MEM_RD1;
@@ -195,7 +246,8 @@ module PCPU(
 
     // get PC, registers, control signals and immediate from MEM/WB register
     wire [31:0] WB_PC_out; assign WB_PC_out = U_MEM_WB.out[31:0];
-    wire [31:0] WB_ALUout; assign WB_inst = U_MEM_WB.out[63:32];
+    wire [4:0] WB_rd; assign WB_rd = U_MEM_WB.out[46:42];
+    assign WB_inst = U_MEM_WB.out[63:32];
     wire [31:0] WB_signals; assign WB_signals = U_MEM_WB.out[95:64];
     wire [31:0] WB_RD1; assign WB_RD1 = U_MEM_WB.out[127:96];
     wire [31:0] WB_RD2; assign WB_RD2 = U_MEM_WB.out[159:128];
@@ -212,5 +264,9 @@ module PCPU(
             `WDSel_FromPC: wrdt <= WB_PC_out;
         endcase
     end
+
+    // forward
+    assign MEM_WB_WB = WB_signals[0];
+    assign MEM_WB_rd = WB_rd;
 
 endmodule
