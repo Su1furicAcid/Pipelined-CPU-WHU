@@ -1,4 +1,4 @@
-module StateReg #(parameter WIDTH = 256) (
+module StageReg #(parameter WIDTH = 200) (
   input Clk, Rst, write_enable, flush,
   input [0:WIDTH-1] in,
   output reg[0:WIDTH-1] out

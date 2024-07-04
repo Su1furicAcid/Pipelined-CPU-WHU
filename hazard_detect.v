@@ -1,4 +1,4 @@
-module hazard_detect(
+module HazardDetect(
   input ID_EX_MR,
   input ID_EX_Rd,
   input ID_EX_RW,

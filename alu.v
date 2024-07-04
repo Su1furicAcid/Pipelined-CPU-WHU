@@ -3,14 +3,13 @@
 `include "ctrl_encode_def.v"
 
 // ALU module
-module alu(A, B, ALUOp, C, Zero, PC);
+module alu(A, B, ALUOp, C, PC);
    // input declaration
    input signed [31:0] A, B;
    input [4:0] ALUOp;
 	input [31:0] PC;
    // output declaration
    output signed [31:0] C;
-   output Zero;
    
    reg [31:0] C;
    integer i;
@@ -38,8 +37,6 @@ module alu(A, B, ALUOp, C, Zero, PC);
          `ALUOp_sra: C = A >>> B;
       endcase
    end
-   
-   assign Zero = (C == 32'b0);
    
 endmodule
     

@@ -1,5 +1,5 @@
 `include "ctrl_encode_def.v"
-module SCPU(
+module PCPU(
     input clk,            // clock
     input reset,          // reset
     input [31:0] inst_in,     // instruction
@@ -12,93 +12,205 @@ module SCPU(
     output [31:0] Data_out,// data to data memory
     output [2:0] dm_ctrl
 );
-    wire RegWrite;    // control signal to register write
-    wire [5:0] EXTOp;       // control signal to signed extension
-    wire [4:0] ALUOp;       // ALU opertion
-    wire [2:0] NPCOp;       // next PC operation
 
-    wire [1:0] WDSel;       // (register) write data selection
-    wire [1:0] GPRSel;      // general purpose register selection
-   
-    wire ALUSrc;      // ALU source for A
-    wire Zero;        // ALU ouput zero
+    /*
+    <<<<<<< IF Stage >>>>>>>
+    */
 
-    wire [31:0] NPC;         // next PC
+    // calculate next PC
+    wire NPCOp;
+    wire [31:0] NPC;
+    wire [31:0] RD1;
+    wire [31:0] immout;
+    NPC U_NPC(
+        .PC(PC_out), 
+        .NPCOp(NPCOp), 
+        .IMM(immout), 
+        .NPC(NPC), 
+        .RD1(RD1)
+    );
 
-    wire [4:0] rs1;          // rs
-    wire [4:0] rs2;          // rt
-    wire [4:0] rd;          // rd
-    wire [6:0] Op;          // opcode
-    wire [6:0] Funct7;       // funct7
-    wire [2:0] Funct3;       // funct3
-    wire [11:0] Imm12;       // 12-bit immediate
-    wire [31:0] Imm32;       // 32-bit immediate
-    wire [19:0] IMM;         // 20-bit immediate (address)
-    wire [4:0] A3;          // register address for write
-    reg [31:0] WD;          // register write data
-    wire [31:0] RD1,RD2;         // register data specified by rs
-    wire [31:0] B;           // operator for ALU B
-	
-	wire [4:0] iimm_shamt;
-	wire [11:0] iimm,simm,sbimm;
-	wire [19:0] uimm,ujimm;
-	wire [31:0] immout;
-    wire [31:0] aluout;
-    assign Addr_out = aluout;
-	assign B = (ALUSrc) ? immout : RD2;
-	assign Data_out = RD2;
-	
-	assign iimm_shamt = inst_in[24:20];
-	assign iimm = inst_in[31:20];
-	assign simm = { inst_in[31:25], inst_in[11:7] };
-	assign sbimm = { inst_in[31],inst_in[7], inst_in[30:25], inst_in[11:8] };
-	assign uimm = inst_in[31:12];
-	assign ujimm = { inst_in[31], inst_in[19:12], inst_in[20], inst_in[30:21] };
-   
-    assign Op = inst_in[6:0];  // instruction
-    assign Funct7 = inst_in[31:25]; // funct7
-    assign Funct3 = inst_in[14:12]; // funct3
-    assign rs1 = inst_in[19:15];  // rs1
-    assign rs2 = inst_in[24:20];  // rs2
-    assign rd = inst_in[11:7];  // rd
-    assign Imm12 = inst_in[31:20];// 12-bit immediate
-    assign IMM = inst_in[31:12];  // 20-bit immediate
-   
-   // instantiation of control unit
-	ctrl U_ctrl(
-		.Op(Op), .Funct7(Funct7), .Funct3(Funct3), .Zero(Zero), 
-		.RegWrite(RegWrite), .MemWrite(mem_w),
-		.EXTOp(EXTOp), .ALUOp(ALUOp), .NPCOp(NPCOp), 
-		.ALUSrc(ALUSrc), .GPRSel(GPRSel), .WDSel(WDSel), .dm_ctrl(dm_ctrl)
-	);
-    // instantiation of pc unit
-	PC U_PC(.clk(clk), .rst(reset), .NPC(NPC), .PC(PC_out));
-	NPC U_NPC(.PC(PC_out), .NPCOp(NPCOp), .IMM(immout), .NPC(NPC), .aluout(aluout));
-	EXT U_EXT(
-		.iimm_shamt(iimm_shamt), .iimm(iimm), .simm(simm), .sbimm(sbimm),
-		.uimm(uimm), .ujimm(ujimm),
-		.EXTOp(EXTOp), .immout(immout)
-	);
-	RF U_RF(
-		.clk(clk), .rst(reset),
-		.RFWr(RegWrite), 
-		.RdAdr1(rs1), .RdAdr2(rs2), 
-        .WrDtAdr(rd), 
-		.WrDt(WD), 
-		.RdDt1(RD1), .RdDt2(RD2)
-	);
-    // instantiation of alu unit
-	alu U_alu(.A(RD1), .B(B), .ALUOp(ALUOp), .C(aluout), .Zero(Zero), .PC(PC_out));
+    // store PC and Instruction in IF/ID register
+    wire IF_ID_write_enable;
+    wire IF_ID_flush;
+    StageReg #(.WIDTH(200)) U_IF_ID(clk, reset, IF_ID_write_enable, IF_ID_flush, , );
+    assign U_IF_ID.in[31:0] = PC_out;
+    assign U_IF_ID.in[63:32] = inst_in;
 
-//please connnect the CPU by yourself
-always @(*)
-begin
-	case(WDSel)
-		`WDSel_FromALU: WD<=aluout;
-		`WDSel_FromMEM: WD<=Data_in;
-		`WDSel_FromPC: WD<=PC_out+4;
-	endcase
-end
+    /*
+    <<<<<<< ID Stage >>>>>>>
+    */
 
+    // get PC and instruction from IF/ID register
+    wire [31:0] ID_PC_out; assign ID_PC_out = U_IF_ID.out[31:0];
+    wire [31:0] ID_inst; assign ID_inst = U_IF_ID.out[63:32];
+
+    // generate control signals
+    wire [6:0] opcode; assign opcode = ID_inst[6:0];
+    wire [6:0] funct7; assign funct7 = ID_inst[31:25];
+    wire [2:0] funct3; assign funct3 = ID_inst[14:12];
+    wire zero;
+    wire [31:0] ctrl_signals; // dont know the width, maybe 31 is enough
+    ctrl U_ctrl(
+        .Op(opcode),
+        .Funct7(funct7),
+        .Funct3(funct3),
+        .Zero(zero),
+        .RegWrite(ctrl_signals[0]),
+        .MemWrite(ctrl_signals[1]),
+        .EXTOp(ctrl_signals[7:2]),
+        .ALUOp(ctrl_signals[12:8]),
+        .NPCOp(ctrl_signals[15:13]),
+        .ALUSrc(ctrl_signals[16]),
+        .dm_ctrl(ctrl_signals[19:17]),
+        .GPRSel(ctrl_signals[21:20]),
+        .WDSel(ctrl_signals[23:22])
+    );
+    assign NPCOp = ctrl_signals[13:15];
+    
+    // read register file
+    // RD1 was defined front of the module
+    wire [31:0] RD2;
+    wire [4:0] rs1; assign rs1 = ID_inst[19:15];
+    wire [4:0] rs2; assign rs2 = ID_inst[24:20];
+    wire [4:0] wrdtadr;
+    wire RegWrite;
+    reg [31:0] wrdt;
+    RF U_RF(
+        .clk(clk),
+        .rst(reset),
+        .RFWr(RegWrite),
+        .RdAdr1(rs1),
+        .RdAdr2(rs2),
+        .WrDtAdr(wrdtadr),
+        .WrDt(wrdt),
+        .RdDt1(RD1),
+        .RdDt2(RD2)
+    );
+
+    // immediate generation
+    wire iimm_shamt; assign iimm_shamt = ID_inst[24:20];
+    wire iimm; assign iimm = ID_inst[31:20];
+    wire simm; assign simm = { ID_inst[31:25], ID_inst[11:7] };
+    wire sbimm; assign sbimm = { ID_inst[31], ID_inst[7], ID_inst[30:25], ID_inst[11:8] };
+    wire uimm; assign uimm = ID_inst[31:12];
+    wire uijmm; assign ujimm = { ID_inst[31], ID_inst[19:12], ID_inst[20], ID_inst[30:21] };
+    wire EXTOp; assign EXTOp = ctrl_signals[7:2];
+    // immout was defined front of the module
+    EXT U_EXT(
+        .iimm_shamt(iimm_shamt),
+        .iimm(iimm),
+        .simm(simm),
+        .sbimm(sbimm),
+        .uimm(uimm),
+        .ujimm(ujimm),
+        .EXTOp(EXTOp),
+        .immout(immout)
+    );
+
+    // judge branch in ID stage
+    JudgeBranch U_JudgeBranch(
+        .inst(ID_inst),
+        .rd1(RD1),
+        .rd2(RD2),
+        .zero(zero)
+    );
+
+    wire ID_EX_write_enable;
+    wire ID_EX_flush;
+    StageReg #(.WIDTH(200)) U_ID_EX(clk, reset, ID_EX_write_enable, ID_EX_flush, , );
+    assign U_ID_EX.in[31:0] = PC_out;
+    assign U_ID_EX.in[63:32] = inst_in;
+    assign U_ID_EX.in[95:64] = ctrl_signals;
+    assign U_ID_EX.in[127:96] = RD1;
+    assign U_ID_EX.in[159:128] = RD2;
+    assign U_ID_EX.in[191:160] = immout;
+
+    /*
+    <<<<<<< EX Stage >>>>>>>
+    */
+
+    // get PC, registers, control signals and immediate from ID/EX register
+    wire [31:0] EX_RD1; assign EX_RD1 = U_ID_EX.out[127:96];
+    wire [31:0] EX_RD2; assign EX_RD2 = U_ID_EX.out[159:128];
+    wire [31:0] EX_signals; assign EX_signals = U_ID_EX.out[95:64];
+    wire [31:0] EX_immout; assign EX_immout = U_ID_EX.out[191:160];
+    wire [31:0] EX_PC_out; assign EX_PC_out = U_ID_EX.out[31:0];
+    wire [31:0] EX_inst; assign EX_inst = U_ID_EX.out[63:32];
+
+    // ALU
+    wire [31:0] ALUout;
+    wire [31:0] A; assign A = EX_RD1;
+    wire [31:0] B; assign B = (EX_signals[16]) ? EX_immout : EX_RD2;
+    alu U_alu(
+        .A(EX_RD1),
+        .B(EX_RD2),
+        .ALUOp(EX_signals[12:8]),
+        .C(ALUout),
+        .PC(EX_PC_out)
+    );
+
+    wire EX_MEM_write_enable;
+    wire EX_MEM_flush;
+    StageReg #(.WIDTH(200)) U_EX_MEM(clk, reset, EX_MEM_write_enable, EX_MEM_flush, , );
+    assign U_EX_MEM.in[31:0] = EX_PC_out;
+    assign U_EX_MEM.in[63:32] = EX_inst;
+    assign U_EX_MEM.in[95:64] = EX_signals;
+    assign U_EX_MEM.in[127:96] = EX_RD1;
+    assign U_EX_MEM.in[159:128] = EX_RD2;
+    assign U_EX_MEM.in[191:160] = ALUout;
+
+    /*
+    <<<<<<< MEM Stage >>>>>>>
+    */
+
+    // get PC, registers, control signals and immediate from EX/MEM register
+    wire [31:0] MEM_PC_out; assign MEM_PC_out = U_EX_MEM.out[31:0];
+    wire [31:0] MEM_inst; assign MEM_inst = U_EX_MEM.out[63:32];
+    wire [31:0] MEM_signals; assign MEM_signals = U_EX_MEM.out[95:64];
+    wire [31:0] MEM_RD1; assign MEM_RD1 = U_EX_MEM.out[127:96];
+    wire [31:0] MEM_RD2; assign MEM_RD2 = U_EX_MEM.out[159:128];
+    wire [31:0] MEM_ALUout; assign MEM_ALUout = U_EX_MEM.out[191:160];
+
+    // data memory
+    assign Addr_out = MEM_ALUout;
+    assign Data_out = MEM_RD2;
+    assign dm_ctrl = MEM_signals[19:17];
+    wire [31:0] rd_data; assign rd_data = Data_in;
+    assign mem_w = MEM_signals[1];
+
+    wire MEM_WB_write_enable;
+    wire MEM_WB_flush;
+    StageReg #(.WIDTH(200)) U_MEM_WB(clk, reset, MEM_WB_write_enable, MEM_WB_flush, , );
+    assign U_MEM_WB.in[31:0] = MEM_PC_out;
+    assign U_MEM_WB.in[63:32] = MEM_ALUout;
+    assign U_MEM_WB.in[95:64] = MEM_signals;
+    assign U_MEM_WB.in[127:96] = MEM_RD1;
+    assign U_MEM_WB.in[159:128] = MEM_RD2;
+    assign U_MEM_WB.in[191:160] = rd_data;
+
+    /*
+    <<<<<<< WB Stage >>>>>>>
+    */
+
+    // get PC, registers, control signals and immediate from MEM/WB register
+    wire [31:0] WB_PC_out; assign WB_PC_out = U_MEM_WB.out[31:0];
+    wire [31:0] WB_ALUout; assign WB_inst = U_MEM_WB.out[63:32];
+    wire [31:0] WB_signals; assign WB_signals = U_MEM_WB.out[95:64];
+    wire [31:0] WB_RD1; assign WB_RD1 = U_MEM_WB.out[127:96];
+    wire [31:0] WB_RD2; assign WB_RD2 = U_MEM_WB.out[159:128];
+    wire [31:0] WB_rd_data; assign WB_rd_data = U_MEM_WB.out[191:160];
+    
+    // write back
+    assign RegWrite = WB_signals[0];
+    assign wrdtadr = WB_RD2;
+    wire WB_WD_Sel; assign WB_WD_Sel = WB_signals[23:22];
+    always @(*) begin
+        case (WB_WD_Sel)
+            `WDSel_FromALU: wrdt <= WB_ALUout;
+            `WDSel_FromMEM: wrdt <= WB_rd_data;
+            `WDSel_FromPC: wrdt <= WB_PC_out;
+        endcase
+    end
 
 endmodule
