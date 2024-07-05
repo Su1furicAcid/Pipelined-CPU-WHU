@@ -117,7 +117,7 @@ module PCPU(
     wire [19:0] uimm; assign uimm = ID_inst[31:12];
     wire [19:0] uijmm; assign ujimm = { ID_inst[31], ID_inst[19:12], ID_inst[20], ID_inst[30:21] };
     wire [31:0] immout;
-    wire EXTOp; assign EXTOp = ctrl_signals[7:2];
+    wire [5:0] EXTOp; assign EXTOp = ctrl_signals[7:2];
     // immout was defined front of the module
     EXT U_EXT(
         .iimm_shamt(iimm_shamt),
@@ -145,7 +145,7 @@ module PCPU(
     );
 
     // ID/EX register
-    wire ID_EX_write_enable;
+    wire ID_EX_write_enable; assign ID_EX_write_enable = 1;
     wire [31:0] EX_RD1;
     wire [31:0] EX_RD2;
     wire [31:0] EX_signals;
@@ -159,7 +159,7 @@ module PCPU(
         .Rst(reset),
         .write_enable(ID_EX_write_enable),
         .flush(ID_EX_flush),
-        .in0(PC_out), .out0(EX_PC_out),
+        .in0(ID_PC_out), .out0(EX_PC_out),
         .in1(rs1), .out1(EX_rs1),
         .in2(rs2), .out2(EX_rs2),
         .in3(rd), .out3(EX_rd),
@@ -231,7 +231,7 @@ module PCPU(
     );
 
     // EX/MEM register
-    wire EX_MEM_write_enable;
+    wire EX_MEM_write_enable; assign EX_MEM_write_enable = 1;
     wire EX_MEM_flush;
     wire [31:0] MEM_PC_out;
     wire [31:0] MEM_RD1;
@@ -263,7 +263,7 @@ module PCPU(
     wire [31:0] rd_data; assign rd_data = Data_in;
     assign mem_w = MEM_signals[1];
 
-    wire MEM_WB_write_enable;
+    wire MEM_WB_write_enable; assign MEM_WB_write_enable = 1;
     wire MEM_WB_flush;
     wire [31:0] WB_PC_out;
     wire [31:0] WB_RD1;
@@ -290,11 +290,12 @@ module PCPU(
     // write back
     assign RegWrite = WB_signals[0];
     assign wrdtadr = WB_RD2;
-    wire [1:0] WB_WD_Sel; assign WB_WD_Sel = WB_signals[23:22];
+    wire [1:0] WB_WDSel; assign WB_WDSel = WB_signals[23:22];
     always @(*) begin
-        case (WB_WD_Sel)
+        case (WB_WDSel)
             `WDSel_FromALU: wrdt <= WB_ALUout;
             `WDSel_FromMEM: wrdt <= WB_rd_data;
+            // whether plus 4 ? 
             `WDSel_FromPC: wrdt <= WB_PC_out;
         endcase
     end

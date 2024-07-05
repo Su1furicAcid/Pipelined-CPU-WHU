@@ -39,7 +39,7 @@ module alu(A, B, ALUOp, C, PC, Zero);
       endcase
    end
 
-   assign Zero = (C == 0);
+   assign Zero = (C == 32'b0);
    
 endmodule
     

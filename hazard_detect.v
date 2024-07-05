@@ -1,9 +1,9 @@
 module HazardDetect(
   input ID_EX_MR,
-  input ID_EX_Rd,
+  input [4:0] ID_EX_Rd,
   input ID_EX_RW,
-  input IF_ID_Rs1,
-  input IF_ID_Rs2,
+  input [4:0] IF_ID_Rs1,
+  input [4:0] IF_ID_Rs2,
   output reg PCWr,
   output reg IF_ID_Wr
 );
