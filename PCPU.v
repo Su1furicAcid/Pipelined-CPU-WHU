@@ -30,6 +30,12 @@ module PCPU(
         .RD1(RD1),
         .PCWrite(PCWrite)
     );
+    PC U_PC(
+        .clk(clk),
+        .rst(reset),
+        .NPC(NPC),
+        .PC(PC_out)
+    );
 
     // store PC and Instruction in IF/ID register
     wire IF_ID_write_enable;
