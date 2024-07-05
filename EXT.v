@@ -34,7 +34,7 @@ module EXT(
 	output reg [31:0] immout
 );
    
-always  @(*)
+always @(*)
 	 case (EXTOp)
 		`EXT_CTRL_ITYPE_SHAMT: immout <= { 27'b0, iimm_shamt[4:0] };
 		`EXT_CTRL_ITYPE: immout <= { { { 32 - 12 }{ iimm[11] } }, iimm[11:0] };

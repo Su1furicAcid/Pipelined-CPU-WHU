@@ -17,19 +17,20 @@ module PCPU(
     */
 
     // calculate next PC
-    wire MEM_NPCOp;
+    wire [2:0] MEM_NPCOp;
     wire [31:0] NPC;
     wire [31:0] RD1;
-    wire [31:0] immout;
+    wire [31:0] MEM_immout;
     wire PCWrite;
     wire [31:0] MEM_ALUout;
     wire MEM_zero;
+
     NPC U_NPC(
         .PC(PC_out), 
         .NPCOp(MEM_NPCOp), 
-        .IMM(immout), 
+        .IMM(MEM_immout), 
         .NPC(NPC), 
-        .aluout(MEM_ALUout),
+        .Aluout(MEM_ALUout),
         .PCWrite(PCWrite),
         .Zero(MEM_zero)
     );
@@ -109,12 +110,13 @@ module PCPU(
     );
 
     // immediate generation
-    wire iimm_shamt; assign iimm_shamt = ID_inst[24:20];
-    wire iimm; assign iimm = ID_inst[31:20];
-    wire simm; assign simm = { ID_inst[31:25], ID_inst[11:7] };
-    wire sbimm; assign sbimm = { ID_inst[31], ID_inst[7], ID_inst[30:25], ID_inst[11:8] };
-    wire uimm; assign uimm = ID_inst[31:12];
-    wire uijmm; assign ujimm = { ID_inst[31], ID_inst[19:12], ID_inst[20], ID_inst[30:21] };
+    wire [4:0] iimm_shamt; assign iimm_shamt = ID_inst[24:20];
+    wire [11:0] iimm; assign iimm = ID_inst[31:20];
+    wire [11:0] simm; assign simm = { ID_inst[31:25], ID_inst[11:7] };
+    wire [11:0] sbimm; assign sbimm = { ID_inst[31], ID_inst[7], ID_inst[30:25], ID_inst[11:8] };
+    wire [19:0] uimm; assign uimm = ID_inst[31:12];
+    wire [19:0] uijmm; assign ujimm = { ID_inst[31], ID_inst[19:12], ID_inst[20], ID_inst[30:21] };
+    wire [31:0] immout;
     wire EXTOp; assign EXTOp = ctrl_signals[7:2];
     // immout was defined front of the module
     EXT U_EXT(
@@ -129,7 +131,6 @@ module PCPU(
     );
 
     wire [4:0] EX_rd; 
-    wire stall;
 
     // Hazard Detection Unit
     // TODO: ... check it again
@@ -140,8 +141,7 @@ module PCPU(
         .IF_ID_Rs1(rs1),
         .IF_ID_Rs2(rs2),
         .PCWr(PCWrite),
-        .IF_ID_Wr(IF_ID_write_enable),
-        .stall(stall)
+        .IF_ID_Wr(IF_ID_write_enable)
     );
 
     // ID/EX register
@@ -182,7 +182,7 @@ module PCPU(
     // ALU
     wire [31:0] ALUout;
 
-    wire forwardA, forwardB;
+    wire [1:0] forwardA, forwardB;
 
     wire [31:0] A;
     wire [31:0] B; 
@@ -196,7 +196,7 @@ module PCPU(
         .out(A)
     );
 
-    wire Bin0temp = (EX_signals[16]) ? EX_immout : EX_RD2;
+    wire [31:0] Bin0temp = (EX_signals[16]) ? EX_immout : EX_RD2;
 
     mux3 Bmux(
         .sel(forwardB),
@@ -247,7 +247,8 @@ module PCPU(
         .in3(EX_RD1), .out3(MEM_RD1),
         .in4(EX_RD2), .out4(MEM_RD2),
         .in5(ALUout), .out5(MEM_ALUout),
-        .in6(EX_zero), .out6(MEM_zero)
+        .in6(EX_zero), .out6(MEM_zero),
+        .in7(EX_immout), .out7(MEM_immout)
     );
     assign MEM_NPCOp = MEM_signals[15:13];
 
@@ -289,7 +290,7 @@ module PCPU(
     // write back
     assign RegWrite = WB_signals[0];
     assign wrdtadr = WB_RD2;
-    wire WB_WD_Sel; assign WB_WD_Sel = WB_signals[23:22];
+    wire [1:0] WB_WD_Sel; assign WB_WD_Sel = WB_signals[23:22];
     always @(*) begin
         case (WB_WD_Sel)
             `WDSel_FromALU: wrdt <= WB_ALUout;
