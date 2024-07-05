@@ -1,18 +1,19 @@
 module StageReg #(parameter WIDTH = 200) (
   input Clk, Rst, write_enable, flush,
-  input [0:WIDTH-1] in,
-  output reg[0:WIDTH-1] out
+  input [WIDTH-1:0] in,
+  output reg [WIDTH-1:0] out
 );
-  always @(negedge Clk) begin
-    if (write_enable) begin
-      if (flush) begin
-        out <= 0;
-      end else begin
-        out <= in;
+  always @(negedge Clk or posedge Rst) begin
+    if (Rst) begin
+      out <= 0;
+    end else begin
+      if (write_enable) begin
+        if (flush) begin
+          out <= 0;
+        end else begin
+          out <= in;
+        end
       end
     end
-  end
-  always @(posedge Rst) begin
-    out <= 0;
   end
 endmodule
