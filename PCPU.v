@@ -22,12 +22,13 @@ module PCPU(
     wire [31:0] RD1;
     wire [31:0] immout;
     wire PCWrite;
+    wire [31:0] MEM_ALUout;
     NPC U_NPC(
         .PC(PC_out), 
         .NPCOp(NPCOp), 
         .IMM(immout), 
         .NPC(NPC), 
-        .RD1(RD1),
+        .aluout(MEM_ALUout),
         .PCWrite(PCWrite)
     );
     PC U_PC(
@@ -61,6 +62,7 @@ module PCPU(
     wire [2:0] funct3; assign funct3 = ID_inst[14:12];
     wire zero;
     wire [31:0] ctrl_signals; // dont know the width, maybe 31 is enough
+    wire ID_EX_flush;
     ctrl U_ctrl(
         .Op(opcode),
         .Funct7(funct7),
@@ -74,7 +76,9 @@ module PCPU(
         .ALUSrc(ctrl_signals[16]),
         .dm_ctrl(ctrl_signals[19:17]),
         .GPRSel(ctrl_signals[21:20]),
-        .WDSel(ctrl_signals[23:22])
+        .WDSel(ctrl_signals[23:22]),
+        .IFflush(IF_ID_flush),
+        .IDflush(ID_EX_flush)
     );
     assign NPCOp = ctrl_signals[15:13];
     
@@ -119,14 +123,6 @@ module PCPU(
         .immout(immout)
     );
 
-    // judge branch in ID stage
-    JudgeBranch U_JudgeBranch(
-        .inst(ID_inst),
-        .rd1(RD1),
-        .rd2(RD2),
-        .Zero(zero)
-    );
-
     wire [4:0] EX_rd; 
     wire stall;
 
@@ -145,7 +141,6 @@ module PCPU(
 
     // ID/EX register
     wire ID_EX_write_enable;
-    wire ID_EX_flush;
     wire [31:0] EX_RD1;
     wire [31:0] EX_RD2;
     wire [31:0] EX_signals;
@@ -185,8 +180,7 @@ module PCPU(
     wire forwardA, forwardB;
 
     wire [31:0] A;
-    wire [31:0] B;
-    wire [31:0] MEM_ALUout; 
+    wire [31:0] B; 
     wire [31:0] WB_ALUout;
 
     mux3 Amux(
@@ -207,12 +201,15 @@ module PCPU(
         .out(B)
     );
 
+    wire EX_zero;
+
     alu U_alu(
         .A(A),
         .B(B),
         .ALUOp(EX_signals[12:8]),
         .C(ALUout),
-        .PC(EX_PC_out)
+        .PC(EX_PC_out),
+        .Zero(EX_zero)
     );
 
     // forward
@@ -244,7 +241,8 @@ module PCPU(
         .in2(EX_signals), .out2(MEM_signals),
         .in3(EX_RD1), .out3(MEM_RD1),
         .in4(EX_RD2), .out4(MEM_RD2),
-        .in5(ALUout), .out5(MEM_ALUout)
+        .in5(ALUout), .out5(MEM_ALUout),
+        .in6(EX_zero), .out6(zero)
     );
 
     /*
