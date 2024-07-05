@@ -37,20 +37,23 @@ module PCPU(
         .PC(PC_out)
     );
 
-    // store PC and Instruction in IF/ID register
+    // IF/ID register
     wire IF_ID_write_enable;
     wire IF_ID_flush;
-    StageReg #(.WIDTH(200)) U_IF_ID(clk, reset, IF_ID_write_enable, IF_ID_flush, , );
-    assign U_IF_ID.in[31:0] = PC_out;
-    assign U_IF_ID.in[63:32] = inst_in;
+    wire [31:0] ID_PC_out; 
+    wire [31:0] ID_inst; 
+    StageReg U_IF_ID(
+        .Clk(clk),
+        .Rst(reset),
+        .write_enable(IF_ID_write_enable),
+        .flush(IF_ID_flush),
+        .in0(PC_out), .out0(ID_PC_out),
+        .in1(inst_in), .out1(ID_inst)
+    );
 
     /*
     <<<<<<< ID Stage >>>>>>>
     */
-
-    // get PC and instruction from IF/ID register
-    wire [31:0] ID_PC_out; assign ID_PC_out = U_IF_ID.out[31:0];
-    wire [31:0] ID_inst; assign ID_inst = U_IF_ID.out[63:32];
 
     // generate control signals
     wire [6:0] opcode; assign opcode = ID_inst[6:0];
@@ -121,7 +124,7 @@ module PCPU(
         .inst(ID_inst),
         .rd1(RD1),
         .rd2(RD2),
-        .zero(zero)
+        .Zero(zero)
     );
 
     wire [4:0] EX_rd; 
@@ -140,32 +143,35 @@ module PCPU(
         .stall(stall)
     );
 
+    // ID/EX register
     wire ID_EX_write_enable;
     wire ID_EX_flush;
-    StageReg #(.WIDTH(200)) U_ID_EX(clk, reset, ID_EX_write_enable, ID_EX_flush, , );
-    assign U_ID_EX.in[31:0] = PC_out;
-    assign U_ID_EX.in[36:32] = rs1;
-    assign U_ID_EX.in[41:37] = rs2;
-    assign U_ID_EX.in[46:42] = rd;
-    assign U_ID_EX.in[95:64] = ctrl_signals;
-    assign U_ID_EX.in[127:96] = RD1;
-    assign U_ID_EX.in[159:128] = RD2;
-    assign U_ID_EX.in[191:160] = immout;
+    wire [31:0] EX_RD1;
+    wire [31:0] EX_RD2;
+    wire [31:0] EX_signals;
+    wire [31:0] EX_immout;
+    wire [31:0] EX_PC_out;
+    wire [4:0] EX_rs1;
+    wire [4:0] EX_rs2;
+
+    StageReg U_ID_EX(
+        .Clk(clk),
+        .Rst(reset),
+        .write_enable(ID_EX_write_enable),
+        .flush(ID_EX_flush),
+        .in0(PC_out), .out0(EX_PC_out),
+        .in1(rs1), .out1(EX_rs1),
+        .in2(rs2), .out2(EX_rs2),
+        .in3(rd), .out3(EX_rd),
+        .in4(ctrl_signals), .out4(EX_signals),
+        .in5(RD1), .out5(EX_RD1),
+        .in6(RD2), .out6(EX_RD2),
+        .in7(immout), .out7(EX_immout)
+    );
 
     /*
     <<<<<<< EX Stage >>>>>>>
     */
-
-    // get PC, registers, control signals and immediate from ID/EX register
-    wire [31:0] EX_RD1; assign EX_RD1 = U_ID_EX.out[127:96];
-    wire [31:0] EX_RD2; assign EX_RD2 = U_ID_EX.out[159:128];
-    wire [31:0] EX_signals; assign EX_signals = U_ID_EX.out[95:64];
-    wire [31:0] EX_immout; assign EX_immout = U_ID_EX.out[191:160];
-    wire [31:0] EX_PC_out; assign EX_PC_out = U_ID_EX.out[31:0];
-    wire [31:0] EX_inst; assign EX_inst = U_ID_EX.out[63:32];
-    wire [4:0] EX_rs1; assign EX_rs1 = U_ID_EX.out[36:32];
-    wire [4:0] EX_rs2; assign EX_rs2 = U_ID_EX.out[41:37];
-    assign EX_rd = U_ID_EX.out[46:42];
     wire EX_MEM_WB;
     wire MEM_WB_WB;
     wire [4:0] MEM_rd;
@@ -222,27 +228,28 @@ module PCPU(
         .forwardB(forwardB)
     );
 
+    // EX/MEM register
     wire EX_MEM_write_enable;
     wire EX_MEM_flush;
-    StageReg #(.WIDTH(200)) U_EX_MEM(clk, reset, EX_MEM_write_enable, EX_MEM_flush, , );
-    assign U_EX_MEM.in[31:0] = EX_PC_out;
-    assign U_EX_MEM.in[46:42] = EX_rd;
-    assign U_EX_MEM.in[95:64] = EX_signals;
-    assign U_EX_MEM.in[127:96] = EX_RD1;
-    assign U_EX_MEM.in[159:128] = EX_RD2;
-    assign U_EX_MEM.in[191:160] = ALUout;
+    wire [31:0] MEM_PC_out;
+    wire [31:0] MEM_RD1;
+    wire [31:0] MEM_RD2;
+    StageReg U_EX_MEM(
+        .Clk(clk),
+        .Rst(reset),
+        .write_enable(EX_MEM_write_enable),
+        .flush(EX_MEM_flush),
+        .in0(EX_PC_out), .out0(MEM_PC_out),
+        .in1(EX_rd), .out1(MEM_rd),
+        .in2(EX_signals), .out2(MEM_signals),
+        .in3(EX_RD1), .out3(MEM_RD1),
+        .in4(EX_RD2), .out4(MEM_RD2),
+        .in5(ALUout), .out5(MEM_ALUout)
+    );
 
     /*
     <<<<<<< MEM Stage >>>>>>>
     */
-
-    // get PC, registers, control signals and immediate from EX/MEM register
-    wire [31:0] MEM_PC_out; assign MEM_PC_out = U_EX_MEM.out[31:0];
-    assign MEM_rd = U_EX_MEM.out[46:42];
-    assign MEM_signals = U_EX_MEM.out[95:64];
-    wire [31:0] MEM_RD1; assign MEM_RD1 = U_EX_MEM.out[127:96];
-    wire [31:0] MEM_RD2; assign MEM_RD2 = U_EX_MEM.out[159:128];
-    assign MEM_ALUout = U_EX_MEM.out[191:160];
 
     // data memory
     assign Addr_out = MEM_ALUout;
@@ -253,28 +260,28 @@ module PCPU(
 
     wire MEM_WB_write_enable;
     wire MEM_WB_flush;
-    StageReg #(.WIDTH(200)) U_MEM_WB(clk, reset, MEM_WB_write_enable, MEM_WB_flush, , );
-    assign U_MEM_WB.in[31:0] = MEM_PC_out;
-    assign U_MEM_WB.in[63:32] = MEM_ALUout;
-    assign U_MEM_WB.in[95:64] = MEM_signals;
-    assign U_MEM_WB.in[127:96] = MEM_RD1;
-    assign U_MEM_WB.in[159:128] = MEM_RD2;
-    assign U_MEM_WB.in[191:160] = rd_data;
-    assign U_MEM_WB.in[196:192] = MEM_rd;
+    wire [31:0] WB_PC_out;
+    wire [31:0] WB_RD1;
+    wire [31:0] WB_RD2;
+    wire [31:0] WB_rd_data;
+    StageReg U_MEM_WB(
+        .Clk(clk),
+        .Rst(reset),
+        .write_enable(MEM_WB_write_enable),
+        .flush(MEM_WB_flush),
+        .in0(MEM_PC_out), .out0(WB_PC_out),
+        .in1(MEM_ALUout), .out1(WB_ALUout),
+        .in2(MEM_signals), .out2(WB_signals),
+        .in3(MEM_RD1), .out3(WB_RD1),
+        .in4(MEM_RD2), .out4(WB_RD2),
+        .in5(rd_data), .out5(WB_rd_data),
+        .in6(MEM_rd), .out6(WB_rd)
+    );
 
     /*
     <<<<<<< WB Stage >>>>>>>
     */
 
-    // get PC, registers, control signals and immediate from MEM/WB register
-    wire [31:0] WB_PC_out; assign WB_PC_out = U_MEM_WB.out[31:0];
-    assign WB_rd = U_MEM_WB.out[196:192];
-    assign WB_inst = U_MEM_WB.out[63:32];
-    assign WB_signals = U_MEM_WB.out[95:64];
-    wire [31:0] WB_RD1; assign WB_RD1 = U_MEM_WB.out[127:96];
-    wire [31:0] WB_RD2; assign WB_RD2 = U_MEM_WB.out[159:128];
-    wire [31:0] WB_rd_data; assign WB_rd_data = U_MEM_WB.out[191:160];
-    
     // write back
     assign RegWrite = WB_signals[0];
     assign wrdtadr = WB_RD2;
