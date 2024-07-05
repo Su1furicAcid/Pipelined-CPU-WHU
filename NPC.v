@@ -1,6 +1,6 @@
 `include "ctrl_encode_def.v"
 
-module NPC(PC, NPCOp, IMM, NPC, aluout, PCWrite);  // next pc module
+module NPC(PC, NPCOp, IMM, NPC, aluout, PCWrite, Zero);  // next pc module
     
    input  [31:0] PC;        // pc
    input  [2:0]  NPCOp;     // next pc operation
@@ -8,6 +8,7 @@ module NPC(PC, NPCOp, IMM, NPC, aluout, PCWrite);  // next pc module
 	input [31:0] aluout;
    output reg [31:0] NPC;   // next pc
    input  PCWrite;
+   input  Zero;
    
    // definite the adder
 
@@ -19,7 +20,7 @@ module NPC(PC, NPCOp, IMM, NPC, aluout, PCWrite);  // next pc module
       if (PCWrite) begin
          case (NPCOp)
             `NPC_PLUS4: NPC <= PCPLUS4;
-            `NPC_BRANCH: NPC <= PC + IMM;
+            `NPC_BRANCH: if (Zero) NPC <= PC + IMM; else NPC <= PCPLUS4;
             `NPC_JUMP: NPC <= PC + IMM;
             `NPC_JALR: NPC <= aluout;
             default: NPC <= PCPLUS4;

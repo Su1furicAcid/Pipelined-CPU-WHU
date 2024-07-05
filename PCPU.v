@@ -17,19 +17,21 @@ module PCPU(
     */
 
     // calculate next PC
-    wire NPCOp;
+    wire MEM_NPCOp;
     wire [31:0] NPC;
     wire [31:0] RD1;
     wire [31:0] immout;
     wire PCWrite;
     wire [31:0] MEM_ALUout;
+    wire MEM_zero;
     NPC U_NPC(
         .PC(PC_out), 
-        .NPCOp(NPCOp), 
+        .NPCOp(MEM_NPCOp), 
         .IMM(immout), 
         .NPC(NPC), 
         .aluout(MEM_ALUout),
-        .PCWrite(PCWrite)
+        .PCWrite(PCWrite),
+        .Zero(MEM_zero)
     );
     PC U_PC(
         .clk(clk),
@@ -60,14 +62,12 @@ module PCPU(
     wire [6:0] opcode; assign opcode = ID_inst[6:0];
     wire [6:0] funct7; assign funct7 = ID_inst[31:25];
     wire [2:0] funct3; assign funct3 = ID_inst[14:12];
-    wire zero;
     wire [31:0] ctrl_signals; // dont know the width, maybe 31 is enough
     wire ID_EX_flush;
     ctrl U_ctrl(
         .Op(opcode),
         .Funct7(funct7),
         .Funct3(funct3),
-        .Zero(zero),
         .RegWrite(ctrl_signals[0]),
         .MemWrite(ctrl_signals[1]),
         .EXTOp(ctrl_signals[7:2]),
@@ -76,11 +76,16 @@ module PCPU(
         .ALUSrc(ctrl_signals[16]),
         .dm_ctrl(ctrl_signals[19:17]),
         .GPRSel(ctrl_signals[21:20]),
-        .WDSel(ctrl_signals[23:22]),
+        .WDSel(ctrl_signals[23:22])
+    );
+
+    // flush unit
+    Flush U_Flush(
+        .mem_npc_op(MEM_NPCOp),
+        .Zero(MEM_zero),
         .IFflush(IF_ID_flush),
         .IDflush(ID_EX_flush)
     );
-    assign NPCOp = ctrl_signals[15:13];
     
     // read register file
     // RD1 was defined front of the module
@@ -242,8 +247,9 @@ module PCPU(
         .in3(EX_RD1), .out3(MEM_RD1),
         .in4(EX_RD2), .out4(MEM_RD2),
         .in5(ALUout), .out5(MEM_ALUout),
-        .in6(EX_zero), .out6(zero)
+        .in6(EX_zero), .out6(MEM_zero)
     );
+    assign MEM_NPCOp = MEM_signals[15:13];
 
     /*
     <<<<<<< MEM Stage >>>>>>>

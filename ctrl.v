@@ -1,12 +1,10 @@
 // Editor: SunAo 
 // LastEditTime: 2024/5/21
-module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, ALUSrc, WDSel, GPRSel, dm_ctrl, IFflush, IDflush);
+module ctrl(Op, Funct7, Funct3, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, ALUSrc, WDSel, GPRSel, dm_ctrl);
             
   input  [6:0] Op;       // opcode
   input  [6:0] Funct7;    // funct7
-  input  [2:0] Funct3;    // funct3
-  input        Zero;
-   
+  input  [2:0] Funct3;    // funct3   
   output       RegWrite; // control signal for register write
   output       MemWrite; // control signal for memory write
   output [5:0] EXTOp;    // control signal to signed extension
@@ -16,8 +14,6 @@ module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, A
 	output [2:0] dm_ctrl;
   output [1:0] GPRSel;   // general purpose register selection
   output [1:0] WDSel;    // (register) write data selection
-  output reg IFflush;
-  output reg IDflush;
 
   // The following lists all the instructions and their corresponding opcodes with funct3/funct7
   // However, we only need to consider the instructions that are instinctly influence the control signals
@@ -112,19 +108,9 @@ module ctrl(Op, Funct7, Funct3, Zero, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, A
   // NPC_BRANCH  3'b001
   // NPC_JUMP    3'b010
   // NPC_JALR	   3'b100
-  assign NPCOp[0] = sbtype & Zero;
+  assign NPCOp[0] = sbtype;
   assign NPCOp[1] = i_jal;
 	assign NPCOp[2] = i_jalr;
-
-  always @(*) begin
-    if (NPCOp) begin
-      IFflush <= 1;
-      IDflush <= 1;
-    end else begin
-      IFflush <= 0;
-      IDflush <= 0;
-    end
-  end
   
   // ALUOp
   // list the instructions and their corresponding ALU operations
