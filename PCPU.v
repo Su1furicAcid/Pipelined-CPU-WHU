@@ -43,7 +43,7 @@ module PCPU(
     );
 
     // IF/ID register
-    wire IF_ID_write_enable;
+    wire IF_ID_write_enable; assign IF_ID_write_enable = 1;
     wire IF_ID_flush;
     wire [31:0] ID_PC_out; 
     wire [31:0] ID_inst; 
@@ -144,8 +144,7 @@ module PCPU(
         .ID_EX_RW(EX_signals[0]),
         .IF_ID_Rs1(rs1),
         .IF_ID_Rs2(rs2),
-        .PCWr(PCWrite),
-        .IF_ID_Wr(IF_ID_write_enable)
+        .PCWr(PCWrite)
     );
 
     // ID/EX register
