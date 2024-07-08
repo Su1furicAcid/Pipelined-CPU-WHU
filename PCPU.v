@@ -115,7 +115,7 @@ module PCPU(
     wire [11:0] simm; assign simm = { ID_inst[31:25], ID_inst[11:7] };
     wire [11:0] sbimm; assign sbimm = { ID_inst[31], ID_inst[7], ID_inst[30:25], ID_inst[11:8] };
     wire [19:0] uimm; assign uimm = ID_inst[31:12];
-    wire [19:0] uijmm; assign ujimm = { ID_inst[31], ID_inst[19:12], ID_inst[20], ID_inst[30:21] };
+    wire [19:0] ujimm; assign ujimm = { ID_inst[31], ID_inst[19:12], ID_inst[20], ID_inst[30:21] };
     wire [31:0] immout;
     wire [5:0] EXTOp; assign EXTOp = ctrl_signals[7:2];
     // immout was defined front of the module
