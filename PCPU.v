@@ -82,8 +82,6 @@ module PCPU(
         .WDSel(ctrl_signals[23:22])
     );
 
-    wire EX_MEM_write_enable;
-
     // flush unit
     Flush U_Flush(
         .mem_npc_op(MEM_NPCOp),
@@ -235,6 +233,7 @@ module PCPU(
     );
 
     // EX/MEM register
+    wire EX_MEM_write_enable; assign EX_MEM_write_enable = 1;
     wire EX_MEM_flush;
     wire [31:0] MEM_RD1;
     wire [31:0] MEM_RD2;
