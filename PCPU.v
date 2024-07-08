@@ -198,7 +198,8 @@ module PCPU(
         .out(A)
     );
 
-    wire [31:0] Bin0temp = (EX_signals[16]) ? EX_immout : EX_RD2;
+    wire [31:0] Bin0temp;
+    assign Bin0temp = (EX_signals[16]) ? EX_immout : EX_RD2;
 
     mux3 Bmux(
         .sel(forwardB),
