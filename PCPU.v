@@ -82,6 +82,8 @@ module PCPU(
         .WDSel(ctrl_signals[23:22])
     );
 
+    wire EX_MEM_write_enable;
+
     // flush unit
     Flush U_Flush(
         .mem_npc_op(MEM_NPCOp),
@@ -137,7 +139,7 @@ module PCPU(
     // Hazard Detection Unit
     // TODO: ... check it again
     HazardDetect U_HazardDetect(
-        .ID_EX_MR(EX_signals[1]),
+        .ID_EX_MR(EX_signals[22]),
         .ID_EX_Rd(EX_rd),
         .ID_EX_RW(EX_signals[0]),
         .IF_ID_Rs1(rs1),
@@ -233,7 +235,6 @@ module PCPU(
     );
 
     // EX/MEM register
-    wire EX_MEM_write_enable; assign EX_MEM_write_enable = 1;
     wire EX_MEM_flush;
     wire [31:0] MEM_RD1;
     wire [31:0] MEM_RD2;
@@ -297,7 +298,7 @@ module PCPU(
             `WDSel_FromALU: wrdt <= WB_ALUout;
             `WDSel_FromMEM: wrdt <= WB_rd_data;
             // whether plus 4 ? 
-            `WDSel_FromPC: wrdt <= WB_PC_out;
+            `WDSel_FromPC: wrdt <= WB_PC_out + 4;
         endcase
     end
 
