@@ -34,7 +34,7 @@ module PCPU(
         .Aluout(MEM_ALUout),
         .PCWrite(PCWrite),
         .Zero(MEM_zero),
-        .MEM_PC(MEM_PC_out)
+        .mem_pc_out(MEM_PC_out)
     );
     PC U_PC(
         .clk(clk),
@@ -174,8 +174,6 @@ module PCPU(
     /*
     <<<<<<< EX Stage >>>>>>>
     */
-    wire EX_MEM_WB;
-    wire MEM_WB_WB;
     wire [4:0] MEM_rd;
     wire [4:0] WB_rd;
     wire [31:0] WB_signals; 
@@ -291,7 +289,7 @@ module PCPU(
 
     // write back
     assign RegWrite = WB_signals[0];
-    assign wrdtadr = WB_RD2;
+    assign wrdtadr = WB_rd;
     wire [1:0] WB_WDSel; assign WB_WDSel = WB_signals[23:22];
     always @(*) begin
         case (WB_WDSel)
