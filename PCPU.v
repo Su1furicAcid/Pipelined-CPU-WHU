@@ -64,7 +64,7 @@ module PCPU(
     wire [6:0] opcode; assign opcode = ID_inst[6:0];
     wire [6:0] funct7; assign funct7 = ID_inst[31:25];
     wire [2:0] funct3; assign funct3 = ID_inst[14:12];
-    wire [31:0] ctrl_signals; // dont know the width, maybe 31 is enough
+    wire [31:0] ctrl_signals; // dont know the width, maybe 32 is enough
     wire ID_EX_flush;
     wire EX_MEM_flush;
     ctrl U_ctrl(
@@ -99,12 +99,12 @@ module PCPU(
     wire [4:0] rs2; assign rs2 = ID_inst[24:20];
     wire [4:0] rd; assign rd = ID_inst[11:7];
     wire [4:0] wrdtadr; // from WB stage
-    wire RegWrite;
+    wire regwrite;
     reg [31:0] wrdt;
     RF U_RF(
         .clk(clk),
         .rst(reset),
-        .RFWr(RegWrite),
+        .RFWr(regwrite),
         .RdAdr1(rs1),
         .RdAdr2(rs2),
         .WrDtAdr(wrdtadr),
@@ -188,7 +188,6 @@ module PCPU(
 
     wire [31:0] A;
     wire [31:0] B; 
-    wire [31:0] WB_ALUout;
 
     mux3 Amux(
         .sel(forwardA),
@@ -270,6 +269,7 @@ module PCPU(
     wire [31:0] WB_RD1;
     wire [31:0] WB_RD2;
     wire [31:0] WB_rd_data;
+    wire [31:0] WB_ALUout;
     StageReg U_MEM_WB(
         .Clk(clk),
         .Rst(reset),
@@ -289,7 +289,7 @@ module PCPU(
     */
 
     // write back
-    assign RegWrite = WB_signals[0];
+    assign regwrite = WB_signals[0];
     assign wrdtadr = WB_rd;
     wire [1:0] WB_WDSel; assign WB_WDSel = WB_signals[23:22];
     always @(*) begin
