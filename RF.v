@@ -16,8 +16,8 @@ module RF(
   input [4:0] RdAdr2, 
   input [4:0] WrDtAdr, 
   input [31:0] WrDt, 
-  output [31:0] RdDt1, 
-  output [31:0] RdDt2
+  output reg [31:0] RdDt1, 
+  output reg [31:0] RdDt2
 );
   // definite register file
   reg [31:0] rf[31:0];
@@ -34,7 +34,11 @@ module RF(
     else if (RFWr && WrDtAdr != 0) begin
       rf[WrDtAdr] <= WrDt;
     end
+
   // read data
-  assign RdDt1 = (RdAdr1 != 0) ? rf[RdAdr1] : 0;
-  assign RdDt2 = (RdAdr2 != 0) ? rf[RdAdr2] : 0;
+  always @(posedge clk) begin
+    if (RdAdr1 != 0) RdDt1 <= (RdAdr1 == WrDtAdr) ? WrDt : rf[RdAdr1]; else RdDt1 <= 0;
+    if (RdAdr2 != 0) RdDt2 <= (RdAdr2 == WrDtAdr) ? WrDt : rf[RdAdr2]; else RdDt2 <= 0;
+  end
+
 endmodule 
