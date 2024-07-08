@@ -25,7 +25,7 @@ module RF(
   integer i;
 
   // write data
-  always @(negedge clk or posedge rst)
+  always @(posedge clk or posedge rst)
     // reset 
     if (rst) begin
       for (i = 0; i < 32; i = i + 1)
@@ -36,7 +36,7 @@ module RF(
     end
 
   // read data
-  always @(posedge clk) begin
+  always @(negedge clk) begin
     if (RdAdr1 != 0) RdDt1 <= (RdAdr1 == WrDtAdr) ? WrDt : rf[RdAdr1]; else RdDt1 <= 0;
     if (RdAdr2 != 0) RdDt2 <= (RdAdr2 == WrDtAdr) ? WrDt : rf[RdAdr2]; else RdDt2 <= 0;
   end
