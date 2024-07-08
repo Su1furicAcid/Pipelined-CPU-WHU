@@ -25,6 +25,7 @@ module PCPU(
     wire [31:0] MEM_ALUout;
     wire MEM_zero;
 
+    wire [31:0] MEM_PC_out;
     NPC U_NPC(
         .PC(PC_out), 
         .NPCOp(MEM_NPCOp), 
@@ -32,7 +33,8 @@ module PCPU(
         .NPC(NPC), 
         .Aluout(MEM_ALUout),
         .PCWrite(PCWrite),
-        .Zero(MEM_zero)
+        .Zero(MEM_zero),
+        .MEM_PC(MEM_PC_out)
     );
     PC U_PC(
         .clk(clk),
@@ -233,7 +235,6 @@ module PCPU(
     // EX/MEM register
     wire EX_MEM_write_enable; assign EX_MEM_write_enable = 1;
     wire EX_MEM_flush;
-    wire [31:0] MEM_PC_out;
     wire [31:0] MEM_RD1;
     wire [31:0] MEM_RD2;
     StageReg U_EX_MEM(
