@@ -19,7 +19,6 @@ module PCPU(
     // calculate next PC
     wire [2:0] MEM_NPCOp;
     wire [31:0] NPC;
-    wire [31:0] RD1;
     wire [31:0] MEM_immout;
     wire PCWrite;
     wire [31:0] MEM_ALUout;
@@ -67,6 +66,7 @@ module PCPU(
     wire [2:0] funct3; assign funct3 = ID_inst[14:12];
     wire [31:0] ctrl_signals; // dont know the width, maybe 31 is enough
     wire ID_EX_flush;
+    wire EX_MEM_flush;
     ctrl U_ctrl(
         .Op(opcode),
         .Funct7(funct7),
@@ -87,11 +87,13 @@ module PCPU(
         .mem_npc_op(MEM_NPCOp),
         .Zero(MEM_zero),
         .IFflush(IF_ID_flush),
-        .IDflush(ID_EX_flush)
+        .IDflush(ID_EX_flush),
+        .EXflush(EX_MEM_flush)
     );
     
     // read register file
     // RD1 was defined front of the module
+    wire [31:0] RD1;
     wire [31:0] RD2;
     wire [4:0] rs1; assign rs1 = ID_inst[19:15];
     wire [4:0] rs2; assign rs2 = ID_inst[24:20];
@@ -191,7 +193,7 @@ module PCPU(
     mux3 Amux(
         .sel(forwardA),
         .in0(EX_RD1),
-        .in1(WB_ALUout),
+        .in1(wrdt),
         .in2(MEM_ALUout),
         .out(A)
     );
@@ -202,7 +204,7 @@ module PCPU(
     mux3 Bmux(
         .sel(forwardB),
         .in0(Bin0temp),
-        .in1(WB_ALUout),
+        .in1(wrdt),
         .in2(MEM_ALUout),
         .out(B)
     );
@@ -233,7 +235,6 @@ module PCPU(
 
     // EX/MEM register
     wire EX_MEM_write_enable; assign EX_MEM_write_enable = 1;
-    wire EX_MEM_flush;
     wire [31:0] MEM_RD1;
     wire [31:0] MEM_RD2;
     StageReg U_EX_MEM(
