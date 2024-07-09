@@ -21,7 +21,7 @@ module PCPU(
     wire [2:0] MEM_NPCOp;
     wire [31:0] NPC;
     wire [31:0] MEM_immout;
-    wire PCWrite;
+    wire stop;
     wire [31:0] MEM_ALUout;
     wire MEM_zero;
 
@@ -32,7 +32,7 @@ module PCPU(
         .IMM(MEM_immout), 
         .NPC(NPC), 
         .Aluout(MEM_ALUout),
-        .PCWrite(PCWrite),
+        .PCWrite(stop),
         .Zero(MEM_zero),
         .mem_pc_out(MEM_PC_out)
     );
@@ -43,18 +43,27 @@ module PCPU(
         .PC(PC_out)
     );
 
+    wire [31:0] IF_inst;
+    wire [31:0] ID_inst;
+
+    mux2 InstNop(
+        .sel({1'b0, stop}),
+        .in0(inst_in),
+        .in1(ID_inst),
+        .out(IF_inst)
+    );
+
     // IF/ID register
     wire IF_ID_write_enable; assign IF_ID_write_enable = 1;
     wire IF_ID_flush;
     wire [31:0] ID_PC_out; 
-    wire [31:0] ID_inst; 
     StageReg U_IF_ID(
         .Clk(clk),
         .Rst(reset),
         .write_enable(IF_ID_write_enable),
         .flush(IF_ID_flush),
         .in0(PC_out), .out0(ID_PC_out),
-        .in1(inst_in), .out1(ID_inst)
+        .in1(IF_inst), .out1(ID_inst)
     );
 
     /*
@@ -145,7 +154,17 @@ module PCPU(
         .ID_EX_RW(EX_signals[0]),
         .IF_ID_Rs1(rs1),
         .IF_ID_Rs2(rs2),
-        .PCWr(PCWrite)
+        .stop(stop)
+    );
+
+    wire [31:0] ctrl_signals_out;
+
+    // generate a nop
+    mux2 CtrlSingalsNop(
+        .sel({1'b0, stop}),
+        .in0(ctrl_signals),
+        .in1(0),
+        .out(ctrl_signals_out)
     );
 
     // ID/EX register
@@ -167,7 +186,7 @@ module PCPU(
         .in1(rs1), .out1(EX_rs1),
         .in2(rs2), .out2(EX_rs2),
         .in3(rd), .out3(EX_rd),
-        .in4(ctrl_signals), .out4(EX_signals),
+        .in4(ctrl_signals_out), .out4(EX_signals),
         .in5(RD1), .out5(EX_RD1),
         .in6(RD2), .out6(EX_RD2),
         .in7(immout), .out7(EX_immout)
@@ -264,7 +283,7 @@ module PCPU(
     assign mem_w = MEM_signals[1];
 
     wire MEM_WB_write_enable; assign MEM_WB_write_enable = 1;
-    wire MEM_WB_flush;
+    wire MEM_WB_flush; assign MEM_WB_flush = 0;
     wire [31:0] WB_PC_out;
     wire [31:0] WB_RD1;
     wire [31:0] WB_RD2;

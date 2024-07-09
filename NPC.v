@@ -18,7 +18,7 @@ module NPC(PC, NPCOp, IMM, NPC, Aluout, PCWrite, Zero, mem_pc_out);  // next pc 
    assign PCPLUS4 = PC + 4; // pc + 4
    
    always @(*) begin
-      if (PCWrite) begin
+      if (!PCWrite) begin
          case (NPCOp)
             `NPC_PLUS4: NPC <= PCPLUS4;
             `NPC_BRANCH: if (Zero) NPC <= mem_pc_out + IMM; else NPC <= PCPLUS4;
