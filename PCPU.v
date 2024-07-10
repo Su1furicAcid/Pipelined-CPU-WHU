@@ -65,12 +65,10 @@ module PCPU(
     );
 
     // IF/ID register
-    wire IF_ID_write_enable; assign IF_ID_write_enable = 1;
     wire [31:0] ID_PC_out; 
     StageReg U_IF_ID(
         .Clk(clk),
         .Rst(reset),
-        .write_enable(IF_ID_write_enable),
         .flush(flush_signal),
         .in0(PC_out), .out0(ID_PC_out),
         .in1(IF_inst), .out1(ID_inst)
@@ -167,7 +165,6 @@ module PCPU(
     );
 
     // ID/EX register
-    wire ID_EX_write_enable; assign ID_EX_write_enable = 1;
     wire [31:0] EX_RD1;
     wire [31:0] EX_RD2;
     wire [31:0] EX_signals;
@@ -179,7 +176,6 @@ module PCPU(
     StageReg U_ID_EX(
         .Clk(clk),
         .Rst(reset),
-        .write_enable(ID_EX_write_enable),
         .flush(flush_signal),
         .in0(ID_PC_out), .out0(EX_PC_out),
         .in1(rs1), .out1(EX_rs1),
@@ -251,13 +247,11 @@ module PCPU(
     );
 
     // EX/MEM register
-    wire EX_MEM_write_enable; assign EX_MEM_write_enable = 1;
     wire [31:0] MEM_RD1;
     wire [31:0] MEM_RD2;
     StageReg U_EX_MEM(
         .Clk(clk),
         .Rst(reset),
-        .write_enable(EX_MEM_write_enable),
         .flush(flush_signal),
         .in0(EX_PC_out), .out0(MEM_PC_out),
         .in1(EX_rd), .out1(MEM_rd),
@@ -291,7 +285,6 @@ module PCPU(
     StageReg U_MEM_WB(
         .Clk(clk),
         .Rst(reset),
-        .write_enable(1),
         .flush(0),
         .in0(MEM_PC_out), .out0(WB_PC_out),
         .in1(MEM_ALUout), .out1(WB_ALUout),
