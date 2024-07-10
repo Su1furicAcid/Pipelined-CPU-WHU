@@ -24,22 +24,34 @@ module PCPU(
     wire stop;
     wire [31:0] MEM_ALUout;
     wire MEM_zero;
+    wire flush_signal;
+    wire j_fetch; assign j_fetch = ((inst_in[6:0] == 7'b1101111) || (inst_in[6:0] == 7'b1100111)) ? 1 : 0;
 
     wire [31:0] MEM_PC_out;
+
+    wire [31:0] sel_pc;
+
+    mux2 NextPCSel(
+        .sel({1'b0, stop}),
+        .in0(NPC),
+        .in1(PC_out),
+        .out(sel_pc)
+    );
+
     NPC U_NPC(
         .PC(PC_out), 
         .NPCOp(MEM_NPCOp), 
         .IMM(MEM_immout), 
         .NPC(NPC), 
         .Aluout(MEM_ALUout),
-        .PCWrite(stop),
         .Zero(MEM_zero),
-        .mem_pc_out(MEM_PC_out)
+        .mem_pc_out(MEM_PC_out),
+        .j_fetch(j_fetch)
     );
     PC U_PC(
         .clk(clk),
         .rst(reset),
-        .NPC(NPC),
+        .NPC(sel_pc),
         .PC(PC_out)
     );
 
@@ -55,13 +67,12 @@ module PCPU(
 
     // IF/ID register
     wire IF_ID_write_enable; assign IF_ID_write_enable = 1;
-    wire IF_ID_flush;
     wire [31:0] ID_PC_out; 
     StageReg U_IF_ID(
         .Clk(clk),
         .Rst(reset),
         .write_enable(IF_ID_write_enable),
-        .flush(IF_ID_flush),
+        .flush(flush_signal),
         .in0(PC_out), .out0(ID_PC_out),
         .in1(IF_inst), .out1(ID_inst)
     );
@@ -75,8 +86,6 @@ module PCPU(
     wire [6:0] funct7; assign funct7 = ID_inst[31:25];
     wire [2:0] funct3; assign funct3 = ID_inst[14:12];
     wire [31:0] ctrl_signals; // dont know the width, maybe 32 is enough
-    wire ID_EX_flush;
-    wire EX_MEM_flush;
     ctrl U_ctrl(
         .Op(opcode),
         .Funct7(funct7),
@@ -90,15 +99,6 @@ module PCPU(
         .dm_ctrl(ctrl_signals[19:17]),
         .GPRSel(ctrl_signals[21:20]),
         .WDSel(ctrl_signals[23:22])
-    );
-
-    // flush unit
-    Flush U_Flush(
-        .mem_npc_op(MEM_NPCOp),
-        .Zero(MEM_zero),
-        .IFflush(IF_ID_flush),
-        .IDflush(ID_EX_flush),
-        .EXflush(EX_MEM_flush)
     );
     
     // read register file
@@ -181,7 +181,7 @@ module PCPU(
         .Clk(clk),
         .Rst(reset),
         .write_enable(ID_EX_write_enable),
-        .flush(ID_EX_flush),
+        .flush(flush_signal),
         .in0(ID_PC_out), .out0(EX_PC_out),
         .in1(rs1), .out1(EX_rs1),
         .in2(rs2), .out2(EX_rs2),
@@ -259,7 +259,7 @@ module PCPU(
         .Clk(clk),
         .Rst(reset),
         .write_enable(EX_MEM_write_enable),
-        .flush(EX_MEM_flush),
+        .flush(flush_signal),
         .in0(EX_PC_out), .out0(MEM_PC_out),
         .in1(EX_rd), .out1(MEM_rd),
         .in2(EX_signals), .out2(MEM_signals),
@@ -269,7 +269,10 @@ module PCPU(
         .in6(EX_zero), .out6(MEM_zero),
         .in7(EX_immout), .out7(MEM_immout)
     );
+
     assign MEM_NPCOp = MEM_signals[15:13];
+    assign branch = MEM_zero & MEM_signals[13];
+    assign flush_signal = (branch | MEM_signals[14] | MEM_signals[15]) ? 1 : 0;
 
     /*
     <<<<<<< MEM Stage >>>>>>>
@@ -282,8 +285,6 @@ module PCPU(
     wire [31:0] rd_data; assign rd_data = Data_in;
     assign mem_w = MEM_signals[1];
 
-    wire MEM_WB_write_enable; assign MEM_WB_write_enable = 1;
-    wire MEM_WB_flush; assign MEM_WB_flush = 0;
     wire [31:0] WB_PC_out;
     wire [31:0] WB_RD1;
     wire [31:0] WB_RD2;
@@ -292,8 +293,8 @@ module PCPU(
     StageReg U_MEM_WB(
         .Clk(clk),
         .Rst(reset),
-        .write_enable(MEM_WB_write_enable),
-        .flush(MEM_WB_flush),
+        .write_enable(1),
+        .flush(0),
         .in0(MEM_PC_out), .out0(WB_PC_out),
         .in1(MEM_ALUout), .out1(WB_ALUout),
         .in2(MEM_signals), .out2(WB_signals),
