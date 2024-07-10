@@ -271,8 +271,7 @@ module PCPU(
 
     assign branch = MEM_zero & MEM_signals[13];
     assign MEM_NPCOp = {MEM_signals[15:14], branch};
-    assign flush_signal = (branch | MEM_signals[14] | MEM_signals[15]) ? 1 : 0;
-
+    assign flush_signal = ((MEM_NPCOp == `NPC_BRANCH) || (MEM_NPCOp == `NPC_JUMP) || (MEM_NPCOp == `NPC_JALR)) ? 1 : 0;
     /*
     <<<<<<< MEM Stage >>>>>>>
     */
