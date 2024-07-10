@@ -44,7 +44,6 @@ module PCPU(
         .IMM(MEM_immout), 
         .NPC(NPC), 
         .Aluout(MEM_ALUout),
-        .Zero(MEM_zero),
         .mem_pc_out(MEM_PC_out),
         .j_fetch(j_fetch)
     );
@@ -270,8 +269,8 @@ module PCPU(
         .in7(EX_immout), .out7(MEM_immout)
     );
 
-    assign MEM_NPCOp = MEM_signals[15:13];
     assign branch = MEM_zero & MEM_signals[13];
+    assign MEM_NPCOp = {MEM_signals[15:14], branch};
     assign flush_signal = (branch | MEM_signals[14] | MEM_signals[15]) ? 1 : 0;
 
     /*
