@@ -8,9 +8,9 @@ module mux2(
 );
   always @(*) begin
     case (sel)
-      2'b00: out <= in0;
-      2'b01: out <= in1;
-      default: out <= 0;
+      2'b00: out = in0;
+      2'b01: out = in1;
+      default: out = 0;
     endcase
   end
 endmodule
@@ -24,10 +24,10 @@ module mux3(
 );
   always @(*) begin
     case (sel)
-      2'b00: out <= in0;
-      2'b01: out <= in1;
-      2'b10: out <= in2;
-      default: out <= 0;
+      2'b00: out = in0;
+      2'b01: out = in1;
+      2'b10: out = in2;
+      default: out = 0;
     endcase
   end
 endmodule
@@ -42,11 +42,11 @@ module mux4(
 );
   always @(*) begin
     case (sel)
-      2'b00: out <= in0;
-      2'b01: out <= in1;
-      2'b10: out <= in2;
-      2'b11: out <= in3;
-      default: out <= 0;
+      2'b00: out = in0;
+      2'b01: out = in1;
+      2'b10: out = in2;
+      2'b11: out = in3;
+      default: out = 0;
     endcase
   end
 endmodule

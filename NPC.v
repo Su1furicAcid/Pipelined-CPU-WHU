@@ -18,11 +18,11 @@ module NPC(PC, NPCOp, IMM, NPC, Aluout, mem_pc_out, j_fetch);  // next pc module
    
    always @(*) begin
       case (NPCOp)
-         `NPC_PLUS4: NPC <= PCPLUS4;
-         `NPC_BRANCH: NPC <= mem_pc_out + IMM;
-         `NPC_JUMP: NPC <= mem_pc_out + IMM;
-         `NPC_JALR: NPC <= Aluout + IMM;
-         default: NPC <= PCPLUS4;
+         `NPC_PLUS4: NPC = PCPLUS4;
+         `NPC_BRANCH: NPC = mem_pc_out + IMM;
+         `NPC_JUMP: NPC = mem_pc_out + IMM;
+         `NPC_JALR: NPC = Aluout + IMM;
+         default: NPC = PCPLUS4;
       endcase
    end
    

@@ -10,9 +10,9 @@ module HazardDetect(
 always @(*) begin
   if (ID_EX_MR && (ID_EX_Rd == IF_ID_Rs1 || ID_EX_Rd == IF_ID_Rs2) && (ID_EX_Rd != 0) && ID_EX_RW) begin
     // stall the pipeline
-    stop <= 1;
+    stop = 1;
   end else begin
-    stop <= 0;
+    stop = 0;
   end
 end
 

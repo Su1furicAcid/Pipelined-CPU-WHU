@@ -107,7 +107,7 @@ module PCPU(
     wire [4:0] rd; assign rd = ID_inst[11:7];
     wire [4:0] wrdtadr; // from WB stage
     wire regwrite;
-    reg [31:0] wrdt;
+    wire [31:0] wrdt;
     RF U_RF(
         .clk(clk),
         .rst(reset),
@@ -303,13 +303,13 @@ module PCPU(
     assign regwrite = WB_signals[0];
     assign wrdtadr = WB_rd;
     wire [1:0] WB_WDSel; assign WB_WDSel = WB_signals[23:22];
-    always @(*) begin
-        case (WB_WDSel)
-            `WDSel_FromALU: wrdt <= WB_ALUout;
-            `WDSel_FromMEM: wrdt <= WB_rd_data;
-            // whether plus 4 ? 
-            `WDSel_FromPC: wrdt <= WB_PC_out + 4;
-        endcase
-    end
+
+    mux3 wrdtSel(
+        .sel(WB_WDSel),
+        .in0(WB_ALUout),
+        .in1(WB_rd_data),
+        .in2(WB_PC_out + 4),
+        .out(wrdt)
+    );
 
 endmodule
