@@ -4,25 +4,38 @@ module StageReg (
   output reg [31:0] out0, out1, out2, out3, out4, out5, out6, out7
 );
 
-  always @(posedge Clk, posedge Rst) begin
-    if (Rst | flush) begin
-      out0 <= 0;
-      out1 <= 0;
-      out2 <= 0;
-      out3 <= 0;
-      out4 <= 0;
-      out5 <= 0;
-      out6 <= 0;
-      out7 <= 0;
-    end else if (write_enable) begin
-      out0 <= in0;
-      out1 <= in1;
-      out2 <= in2;
-      out3 <= in3;
-      out4 <= in4;
-      out5 <= in5;
-      out6 <= in6;
-      out7 <= in7;
+  always @(posedge Clk or posedge Rst) begin
+    if (Rst) begin
+      out0 <= 32'h0000_0000;
+      out1 <= 32'h0000_0000;
+      out2 <= 32'h0000_0000;
+      out3 <= 32'h0000_0000;
+      out4 <= 32'h0000_0000;
+      out5 <= 32'h0000_0000;
+      out6 <= 32'h0000_0000;
+      out7 <= 32'h0000_0000;
+    end else begin
+      if (flush) begin
+        out0 <= 32'h0000_0000;
+        out1 <= 32'h0000_0000;
+        out2 <= 32'h0000_0000;
+        out3 <= 32'h0000_0000;
+        out4 <= 32'h0000_0000;
+        out5 <= 32'h0000_0000;
+        out6 <= 32'h0000_0000;
+        out7 <= 32'h0000_0000;
+      end else begin
+        if (write_enable) begin
+          out0 <= in0;
+          out1 <= in1;
+          out2 <= in2;
+          out3 <= in3;
+          out4 <= in4;
+          out5 <= in5;
+          out6 <= in6;
+          out7 <= in7;
+        end
+      end
     end
   end
 

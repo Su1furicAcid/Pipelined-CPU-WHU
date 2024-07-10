@@ -46,7 +46,7 @@ module PCPU(
     wire [31:0] IF_inst;
     wire [31:0] ID_inst;
 
-    mux2 InstNopIF_ID(
+    mux2 InstNop(
         .sel({1'b0, stop}),
         .in0(inst_in),
         .in1(ID_inst),
@@ -110,7 +110,7 @@ module PCPU(
     wire [4:0] rd; assign rd = ID_inst[11:7];
     wire [4:0] wrdtadr; // from WB stage
     wire regwrite;
-    wire [31:0] wrdt;
+    reg [31:0] wrdt;
     RF U_RF(
         .clk(clk),
         .rst(reset),
@@ -151,6 +151,7 @@ module PCPU(
     HazardDetect U_HazardDetect(
         .ID_EX_MR(EX_signals[22]),
         .ID_EX_Rd(EX_rd),
+        .ID_EX_RW(EX_signals[0]),
         .IF_ID_Rs1(rs1),
         .IF_ID_Rs2(rs2),
         .stop(stop)
@@ -158,10 +159,11 @@ module PCPU(
 
     wire [31:0] ctrl_signals_out;
 
-    mux2 InstNopID_EX(
+    // generate a nop
+    mux2 CtrlSingalsNop(
         .sel({1'b0, stop}),
         .in0(ctrl_signals),
-        .in1(32'b0),
+        .in1(0),
         .out(ctrl_signals_out)
     );
 
@@ -309,12 +311,13 @@ module PCPU(
     assign regwrite = WB_signals[0];
     assign wrdtadr = WB_rd;
     wire [1:0] WB_WDSel; assign WB_WDSel = WB_signals[23:22];
-    mux3 WDSelect(
-        .sel(WB_WDSel),
-        .in0(WB_ALUout),
-        .in1(WB_rd_data),
-        .in2(WB_PC_out + 4),
-        .out(wrdt)
-    );
+    always @(*) begin
+        case (WB_WDSel)
+            `WDSel_FromALU: wrdt <= WB_ALUout;
+            `WDSel_FromMEM: wrdt <= WB_rd_data;
+            // whether plus 4 ? 
+            `WDSel_FromPC: wrdt <= WB_PC_out + 4;
+        endcase
+    end
 
 endmodule
