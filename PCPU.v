@@ -71,7 +71,13 @@ module PCPU(
         .Rst(reset),
         .flush(flush_signal),
         .in0(PC_out), .out0(ID_PC_out),
-        .in1(IF_inst), .out1(ID_inst)
+        .in1(IF_inst), .out1(ID_inst),
+        .in2(0), .out2(0),
+        .in3(0), .out3(0),
+        .in4(0), .out4(0),
+        .in5(0), .out5(0),
+        .in6(0), .out6(0),
+        .in7(0), .out7(0)
     );
 
     /*
@@ -299,7 +305,8 @@ module PCPU(
         .in3(MEM_RD1), .out3(WB_RD1),
         .in4(MEM_RD2), .out4(WB_RD2),
         .in5(rd_data), .out5(WB_rd_data),
-        .in6(MEM_rd), .out6(WB_rd)
+        .in6(MEM_rd), .out6(WB_rd),
+        .in7(0), .out7(0)
     );
 
     /*
