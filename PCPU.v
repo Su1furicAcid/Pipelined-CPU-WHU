@@ -248,7 +248,7 @@ module PCPU(
 
     // EX/MEM register
     wire [31:0] MEM_RD1;
-    wire [31:0] MEM_RD2;
+    wire [31:0] MEM_B;
     StageReg U_EX_MEM(
         .Clk(clk),
         .Rst(reset),
@@ -257,7 +257,7 @@ module PCPU(
         .in1(EX_rd), .out1(MEM_rd),
         .in2(EX_signals), .out2(MEM_signals),
         .in3(EX_RD1), .out3(MEM_RD1),
-        .in4(EX_RD2), .out4(MEM_RD2),
+        .in4(B), .out4(MEM_B),
         .in5(ALUout), .out5(MEM_ALUout),
         .in6(EX_zero), .out6(MEM_zero),
         .in7(EX_immout), .out7(MEM_immout)
@@ -272,14 +272,14 @@ module PCPU(
 
     // data memory
     assign Addr_out = MEM_ALUout;
-    assign Data_out = MEM_RD2;
+    assign Data_out = MEM_B;
     assign dm_ctrl = MEM_signals[19:17];
     wire [31:0] rd_data; assign rd_data = Data_in;
     assign mem_w = MEM_signals[1];
 
     wire [31:0] WB_PC_out;
     wire [31:0] WB_RD1;
-    wire [31:0] WB_RD2;
+    wire [31:0] WB_B;
     wire [31:0] WB_rd_data;
     wire [31:0] WB_ALUout;
     StageReg U_MEM_WB(
@@ -290,7 +290,7 @@ module PCPU(
         .in1(MEM_ALUout), .out1(WB_ALUout),
         .in2(MEM_signals), .out2(WB_signals),
         .in3(MEM_RD1), .out3(WB_RD1),
-        .in4(MEM_RD2), .out4(WB_RD2),
+        .in4(MEM_B), .out4(WB_B),
         .in5(rd_data), .out5(WB_rd_data),
         .in6(MEM_rd), .out6(WB_rd)
     );
