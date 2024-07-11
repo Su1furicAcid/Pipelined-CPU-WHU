@@ -222,7 +222,7 @@ module PCPU(
     );
 
     mux2 Bmux2(
-        .sel(ctrl_signals[16]),
+        .sel({1'b0, EX_signals[16]}),
         .in0(Real_RD2),
         .in1(EX_immout),
         .out(B)
