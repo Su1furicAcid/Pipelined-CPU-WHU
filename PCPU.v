@@ -255,6 +255,7 @@ module PCPU(
     // EX/MEM register
     wire [31:0] MEM_RD1;
     wire [31:0] MEM_RD2;
+    
     StageReg U_EX_MEM(
         .Clk(clk),
         .Rst(reset),
