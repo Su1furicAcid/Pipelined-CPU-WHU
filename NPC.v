@@ -14,7 +14,7 @@ module NPC(PC, NPCOp, IMM, NPC, Aluout, mem_pc_out, j_fetch);  // next pc module
 
    wire [31:0] PCPLUS4;
    
-   assign PCPLUS4 = (j_fetch) ? PC : PC + 4;
+   assign PCPLUS4 = (j_fetch) ? PC : (PC + 4);
    
    always @(*) begin
       case (NPCOp)
