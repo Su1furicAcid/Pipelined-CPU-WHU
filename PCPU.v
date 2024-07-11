@@ -327,3 +327,10 @@ module PCPU(
     );
 
 endmodule
+
+// addi x5, x0, 16 0x01000293
+// sw x5, 0(x0) 0x00502023
+// lw x6, 0(x0) 0x00002303
+// jalr x0, 0(x6) 0x00030067
+// addi x6, x6, 84 0x05430313
+// jalr x0, 0(x6) 0x00030067
