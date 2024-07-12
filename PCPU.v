@@ -17,7 +17,6 @@ module PCPU(
     */
 
     // calculate next PC
-    wire [2:0] MEM_NPCOp;
     wire [31:0] NPC;
     wire [31:0] MEM_immout;
     wire stop;
@@ -29,6 +28,11 @@ module PCPU(
 
     wire [31:0] sel_pc;
 
+    wire [31:0] ALUout;
+    wire [31:0] EX_NPCOp;
+    wire [31:0] EX_immout;
+    wire [31:0] EX_PC_out;
+
     mux2 NextPCSel(
         .sel({1'b0, stop}),
         .in0(NPC),
@@ -38,11 +42,11 @@ module PCPU(
 
     NPC U_NPC(
         .PC(PC_out), 
-        .NPCOp(MEM_NPCOp), 
-        .IMM(MEM_immout), 
+        .NPCOp(EX_NPCOp), 
+        .IMM(EX_immout), 
         .NPC(NPC), 
-        .Aluout(MEM_ALUout),
-        .mem_pc_out(MEM_PC_out)
+        .Aluout(ALUout),
+        .mem_pc_out(EX_PC_out)
     );
     PC U_PC(
         .clk(clk),
@@ -170,8 +174,6 @@ module PCPU(
     wire [31:0] EX_RD1;
     wire [31:0] EX_RD2;
     wire [31:0] EX_signals;
-    wire [31:0] EX_immout;
-    wire [31:0] EX_PC_out;
     wire [4:0] EX_rs1;
     wire [4:0] EX_rs2;
 
@@ -198,7 +200,6 @@ module PCPU(
     wire [31:0] MEM_signals; 
 
     // ALU
-    wire [31:0] ALUout;
 
     wire [1:0] forwardA, forwardB;
 
@@ -261,7 +262,7 @@ module PCPU(
     StageReg U_EX_MEM(
         .Clk(clk),
         .Rst(reset),
-        .flush(flush_signal),
+        .flush(0),
         .in0(EX_PC_out), .out0(MEM_PC_out),
         .in1(EX_rd), .out1(MEM_rd),
         .in2(EX_signals), .out2(MEM_signals),
@@ -272,9 +273,9 @@ module PCPU(
         .in7(EX_immout), .out7(MEM_immout)
     );
 
-    assign branch = MEM_zero & MEM_signals[13];
-    assign MEM_NPCOp = {MEM_signals[15:14], branch};
-    assign flush_signal = (MEM_NPCOp == 0) ? 0 : 1;
+    assign branch = EX_zero & EX_signals[13];
+    assign EX_NPCOp = {EX_signals[15:14], branch};
+    assign flush_signal = (EX_NPCOp == 0) ? 0 : 1;
     /*
     <<<<<<< MEM Stage >>>>>>>
     */
