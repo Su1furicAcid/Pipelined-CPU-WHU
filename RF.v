@@ -35,7 +35,7 @@ module RF(
       rf[WrDtAdr] <= WrDt;
     end
     
-  assign RdDt1 = (RdAdr1 != 0) ? ((RdAdr1 == WrDtAdr) ? WrDt : rf[RdAdr1]) : 0;
-  assign RdDt2 = (RdAdr2 != 0) ? ((RdAdr2 == WrDtAdr) ? WrDt : rf[RdAdr2]) : 0;
+  assign RdDt1 = (RdAdr1 != 0) ? rf[RdAdr1] : 0;
+  assign RdDt2 = (RdAdr2 != 0) ? rf[RdAdr2] : 0;
 
 endmodule 

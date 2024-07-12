@@ -1,6 +1,6 @@
 `include "ctrl_encode_def.v"
 
-module NPC(PC, NPCOp, IMM, NPC, Aluout, mem_pc_out, j_fetch);  // next pc module
+module NPC(PC, NPCOp, IMM, NPC, Aluout, mem_pc_out);  // next pc module
     
    input  [31:0] PC;        // pc
    input  [2:0]  NPCOp;     // next pc operation
@@ -8,14 +8,13 @@ module NPC(PC, NPCOp, IMM, NPC, Aluout, mem_pc_out, j_fetch);  // next pc module
 	input [31:0] Aluout;
    output reg [31:0] NPC;   // next pc
    input [31:0] mem_pc_out;
-   input j_fetch;
    
    // definite the adder
 
    wire [31:0] PCPLUS4;
    
-   assign PCPLUS4 = (j_fetch) ? PC : (PC + 4);
-   
+   assign PCPLUS4 = PC + 4;
+
    always @(*) begin
       case (NPCOp)
          `NPC_PLUS4: NPC = PCPLUS4;

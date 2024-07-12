@@ -1,5 +1,4 @@
 // Author: SunAo
-`include "ctrl_encode_def.v"
 module PCPU(
     input clk,            // clock
     input reset,          // reset
@@ -25,7 +24,6 @@ module PCPU(
     wire [31:0] MEM_ALUout;
     wire MEM_zero;
     wire flush_signal;
-    wire j_fetch; assign j_fetch = ((inst_in[6:0] == 7'b1101111) || (inst_in[6:0] == 7'b1100111)) ? 1 : 0;
 
     wire [31:0] MEM_PC_out;
 
@@ -44,8 +42,7 @@ module PCPU(
         .IMM(MEM_immout), 
         .NPC(NPC), 
         .Aluout(MEM_ALUout),
-        .mem_pc_out(MEM_PC_out),
-        .j_fetch(j_fetch)
+        .mem_pc_out(MEM_PC_out)
     );
     PC U_PC(
         .clk(clk),
@@ -154,7 +151,6 @@ module PCPU(
     HazardDetect U_HazardDetect(
         .ID_EX_MR(EX_signals[22]),
         .ID_EX_Rd(EX_rd),
-        .ID_EX_RW(EX_signals[0]),
         .IF_ID_Rs1(rs1),
         .IF_ID_Rs2(rs2),
         .stop(stop)
@@ -166,7 +162,7 @@ module PCPU(
     mux2 CtrlSingalsNop(
         .sel({1'b0, stop}),
         .in0(ctrl_signals),
-        .in1(0),
+        .in1(32'b0),
         .out(ctrl_signals_out)
     );
 
@@ -278,7 +274,7 @@ module PCPU(
 
     assign branch = MEM_zero & MEM_signals[13];
     assign MEM_NPCOp = {MEM_signals[15:14], branch};
-    assign flush_signal = ((MEM_NPCOp == `NPC_BRANCH) || (MEM_NPCOp == `NPC_JUMP) || (MEM_NPCOp == `NPC_JALR)) ? 1 : 0;
+    assign flush_signal = (MEM_NPCOp == 0) ? 0 : 1;
     /*
     <<<<<<< MEM Stage >>>>>>>
     */
