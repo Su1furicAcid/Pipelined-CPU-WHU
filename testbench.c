@@ -27,3 +27,35 @@ jal x0, loop
 done:
 sw x7, 0(x18)
 */
+
+int main() {
+    unsigned int address = 0xF0000000;
+    unsigned int data = *(unsigned int *)address;
+
+    // 提取A、B和操作符编号
+    int a = (data & 0x00000007);          // 低三位
+    int b = (data & 0x00000038) >> 3;     // 接着三位
+    int op_code = (data & 0x000000C0) >> 6; // 最后两位
+    int result;
+
+    // 执行四则运算
+    switch ( op_code ) {
+        case 0:
+            result = a + b;
+            break;
+        case 1:
+            result = a - b;
+            break;
+        case 2:
+            result = a * b;
+            break;
+        default:
+            result = 0; // 无效的操作符编号
+    }
+
+    // 打印结果
+    unsigned int output_address = 0xE0000000;
+    *(unsigned int *)output_address = result;
+
+    return 0;
+}
