@@ -36,6 +36,14 @@ module alu(A, B, ALUOp, C, PC, Zero);
          `ALUOp_sll: C = A << B;
          `ALUOp_srl: C = A >> B;
          `ALUOp_sra: C = A >>> B;
+         `ALUOp_mul: C = A * B;
+         `ALUOp_mulh: C = $signed($signed(A) * $signed(B)) >> 32;
+         `ALUOp_mulhsu: C = $signed($signed(A) * $unsigned(B)) >> 32;
+         `ALUOp_mulhu: C = $unsigned($unsigned(A) * $unsigned(B)) >> 32;
+         `ALUOp_div: C = A / B;
+         `ALUOp_divu: C = $unsigned(A) / $unsigned(B);
+         `ALUOp_rem: C = A % B;
+         `ALUOp_remu: C = $unsigned(A) % $unsigned(B);
       endcase
    end
 

@@ -30,6 +30,15 @@ module ctrl(Op, Funct7, Funct3, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, ALUSrc,
   wire i_sltu = rtype & ~Funct7[6] & ~Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & ~Funct7[0] & ~Funct3[2] & Funct3[1] & Funct3[0]; // sltu 0000000 011
   wire i_srl = rtype & ~Funct7[6] & ~Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & ~Funct7[0] & Funct3[2] & ~Funct3[1] & Funct3[0]; // srl 0000000 101
   wire i_sra = rtype & ~Funct7[6] & Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & ~Funct7[0] & Funct3[2] & ~Funct3[1] & Funct3[0]; // sra 0100000 101
+  // RV32M extension
+  wire i_mul = rtype & ~Funct7[6] & ~Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & Funct7[0] & ~Funct3[2] & ~Funct3[1] & ~Funct3[0]; // mul 0000001 000
+  wire i_mulh = rtype & ~Funct7[6] & ~Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & Funct7[0] & ~Funct3[2] & ~Funct3[1] & Funct3[0]; // mulh 0000001 001
+  wire i_mulhsu = rtype & ~Funct7[6] & ~Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & Funct7[0] & ~Funct3[2] & Funct3[1] & ~Funct3[0]; // mulhsu 0000001 010
+  wire i_mulhu = rtype & ~Funct7[6] & ~Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & Funct7[0] & ~Funct3[2] & Funct3[1] & Funct3[0]; // mulhu 0000001 011
+  wire i_div = rtype & ~Funct7[6] & ~Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & Funct7[0] & Funct3[2] & ~Funct3[1] & ~Funct3[0]; // div 0000001 100
+  wire i_divu = rtype & ~Funct7[6] & ~Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & Funct7[0] & Funct3[2] & ~Funct3[1] & Funct3[0]; // divu 0000001 101
+  wire i_rem = rtype & ~Funct7[6] & ~Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & Funct7[0] & Funct3[2] & Funct3[1] & ~Funct3[0]; // rem 0000001 110
+  wire i_remu = rtype & ~Funct7[6] & ~Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2] & ~Funct7[1] & Funct7[0] & Funct3[2] & Funct3[1] & Funct3[0]; // remu 0000001 111
 
   // i format: lb, lh, lw, lbu, lhu
   wire itype_l = ~Op[6] & ~Op[5] & ~Op[4] & ~Op[3] & ~Op[2] & Op[1] & Op[0]; // opcode 0000011
@@ -115,11 +124,11 @@ module ctrl(Op, Funct7, Funct3, RegWrite, MemWrite, EXTOp, ALUOp, NPCOp, ALUSrc,
   // ALUOp
   // list the instructions and their corresponding ALU operations
 
-  assign ALUOp[0] = i_addi | i_ori | i_add | i_or | i_lui | i_bne | i_bge | i_bgeu | i_sltu | i_sltiu | i_sll | i_slli | i_sra | i_srai | itype_l | stype;
-  assign ALUOp[1] = i_auipc | i_add | i_addi | i_blt | i_bge | i_slt | i_slti | i_sltu | i_sltiu | i_and | i_andi | i_sll | i_slli | itype_l | stype;
-  assign ALUOp[2] = i_andi | i_and | i_ori | i_or | i_sub | i_bne | i_blt | i_bge | i_xor | i_xori | i_sll | i_slli | i_beq;
-  assign ALUOp[3] = i_andi | i_and | i_ori | i_or | i_bltu | i_bgeu | i_slti | i_slt | i_sltu | i_sltiu | i_xor | i_xori | i_sll | i_slli;
-  assign ALUOp[4] = i_srl | i_srli | i_sra | i_srai;
+  assign ALUOp[0] = i_addi | i_ori | i_add | i_or | i_lui | i_bne | i_bge | i_bgeu | i_sltu | i_sltiu | i_sll | i_slli | i_sra | i_srai | itype_l | stype | i_mulh | i_mulhu | i_divu | i_remu;
+  assign ALUOp[1] = i_auipc | i_add | i_addi | i_blt | i_bge | i_slt | i_slti | i_sltu | i_sltiu | i_and | i_andi | i_sll | i_slli | itype_l | stype | i_mul | i_mulh | i_div | i_divu;
+  assign ALUOp[2] = i_andi | i_and | i_ori | i_or | i_sub | i_bne | i_blt | i_bge | i_xor | i_xori | i_sll | i_slli | i_beq | i_mulhsu | i_mulhu | i_div | i_divu;
+  assign ALUOp[3] = i_andi | i_and | i_ori | i_or | i_bltu | i_bgeu | i_slti | i_slt | i_sltu | i_sltiu | i_xor | i_xori | i_sll | i_slli | i_rem | i_remu;
+  assign ALUOp[4] = i_srl | i_srli | i_sra | i_srai | i_mul | i_mulh | i_mulhsu | i_mulhu | i_div | i_divu | i_rem | i_remu;
 
   assign dm_ctrl[0] = i_lh | i_lb | i_sh | i_sb;
   assign dm_ctrl[1] = i_lhu | i_lb | i_sb;
