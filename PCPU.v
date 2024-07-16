@@ -4,6 +4,7 @@ module PCPU(
     input reset,          // reset
     input [31:0] inst_in,     // instruction
     input [31:0] Data_in,     // data from data memory
+    input INT,          // interrupt signal
    
     output mem_w,          // output: memory write signal
     output [31:0] PC_out,     // PC address
@@ -33,11 +34,32 @@ module PCPU(
     wire [31:0] EX_immout;
     wire [31:0] EX_PC_out;
 
+    wire INT_det; assign INT_det = INT;
+    wire INT_ret; assign INT_ret = (inst_in == 32'h3020_0073);
+
+    reg [31:0] saved_PC; // for interrupt
+
+    always @(*) begin
+        if (INT_det) begin
+            saved_PC = sel_pc;
+        end
+    end
+
+    wire [31:0] next_PC;
+
     mux2 NextPCSel(
         .sel({1'b0, stop}),
         .in0(NPC),
         .in1(PC_out),
         .out(sel_pc)
+    );
+
+    mux3 INTPCSel(
+        .sel({INT_ret, INT_det}),
+        .in0(sel_pc),
+        .in1(36),
+        .in2(saved_PC),
+        .out(next_PC)
     );
 
     NPC U_NPC(
@@ -51,7 +73,7 @@ module PCPU(
     PC U_PC(
         .clk(clk),
         .rst(reset),
-        .NPC(sel_pc),
+        .NPC(next_PC),
         .PC(PC_out)
     );
 
@@ -78,7 +100,9 @@ module PCPU(
         .in4(0), .out4(0),
         .in5(0), .out5(0),
         .in6(0), .out6(0),
-        .in7(0), .out7(0)
+        .in7(0), .out7(0),
+        .INT_Detect(INT_det),
+        .INT_Return(INT_ret)
     );
 
     /*
@@ -188,7 +212,9 @@ module PCPU(
         .in4(ctrl_signals_out), .out4(EX_signals),
         .in5(RD1), .out5(EX_RD1),
         .in6(RD2), .out6(EX_RD2),
-        .in7(immout), .out7(EX_immout)
+        .in7(immout), .out7(EX_immout),
+        .INT_Detect(INT_det),
+        .INT_Return(INT_ret)
     );
 
     /*
@@ -270,7 +296,9 @@ module PCPU(
         .in4(Real_RD2), .out4(MEM_RD2),
         .in5(ALUout), .out5(MEM_ALUout),
         .in6(EX_zero), .out6(MEM_zero),
-        .in7(EX_immout), .out7(MEM_immout)
+        .in7(EX_immout), .out7(MEM_immout),
+        .INT_Detect(INT_det),
+        .INT_Return(INT_ret)
     );
 
     assign branch = EX_zero & EX_signals[13];
@@ -303,7 +331,9 @@ module PCPU(
         .in4(MEM_RD2), .out4(WB_RD2),
         .in5(rd_data), .out5(WB_rd_data),
         .in6(MEM_rd), .out6(WB_rd),
-        .in7(0), .out7(0)
+        .in7(0), .out7(0),
+        .INT_Detect(INT_det),
+        .INT_Return(INT_ret)
     );
 
     /*
